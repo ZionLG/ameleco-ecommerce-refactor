@@ -1,66 +1,264 @@
 import Link from "next/link";
+import Image from "next/image";
 
-import { LatestPost } from "~/app/_components/post";
-import { getServerAuthSession } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
+import { HydrateClient } from "~/trpc/server";
+import { cn } from "~/lib/utils";
+import { buttonVariants } from "~/components/ui/button";
+import { TextEffect } from "~/components/core/text-effect";
+import HomeCategory, {
+  type HomeCategoryProps,
+} from "~/app/_components/HomeCategory";
+import { Separator } from "~/components/ui/Separator";
+import { TextFade } from "~/components/ui/TextFade";
+import AboutUsSection from "~/app/_components/AboutUs/AboutUsSection";
+import Accessories from "@public/Accessories.png";
+import Box from "@public/Box.png";
+import Breaker from "@public/Breaker.png";
+import HomeBackground from "@public/electrician.jpg";
+import HeatingCooling from "@public/heating and cooling.png";
+import Lighting from "@public/Lighting.png";
+import Wires from "@public/Wires.png";
+import Thanksgiving from "@public/Thanksgiving.jpg";
+import Careers from "@public/CAREERS.jpg";
+import ContactUs from "@public/contactus.jpg";
+import { AnimatedNumberInView } from "~/components/ui/animted-number-inview";
+
+const Categories = [
+  {
+    image: HeatingCooling,
+    title: "Heating and Cooling",
+    description: "Fans, Air Conditioners",
+  },
+  {
+    image: Lighting,
+    title: "Lighting",
+    description: "Bulbs, Fixtures",
+  },
+  {
+    image: Breaker,
+    title: "Breaker",
+    description: "Circuit Breaker, Single-pole",
+  },
+  {
+    image: Box,
+    title: "BOX",
+    description: "Metal Box, PVC FS",
+  },
+  {
+    image: Wires,
+    title: "Wires",
+    description: "Cable, Antishort",
+  },
+  {
+    image: Accessories,
+    title: "Accessories",
+    description: "Lock Nut, Extension Ring",
+  },
+] as HomeCategoryProps[];
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await getServerAuthSession();
-
-  void api.post.getLatest.prefetch();
-
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
+      <main className="flex min-h-screen flex-col">
+        <section className="relative flex h-[650px] w-full flex-col justify-center overflow-hidden px-5 lg:px-28">
+          <Image
+            src={HomeBackground}
+            fill={true}
+            priority
+            alt={"Background Image"}
+            className="object-cover object-left"
+          />
+
+          <div className="absolute flex flex-col gap-4">
+            <div className="flex flex-col gap-10 text-center lg:gap-0 lg:text-start">
+              <TextEffect
+                per="char"
+                as="span"
+                className="text-6xl text-secondary-foreground"
+                preset="slide"
+              >
+                Ameleco Electrical Supply
+              </TextEffect>
+
+              <TextEffect
+                per="char"
+                as="span"
+                className="text-4xl text-secondary-foreground"
+                preset="blur"
+              >
+                Reliable & Professional
+              </TextEffect>
+            </div>
+
             <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
+              href={"shop"}
+              className={`${cn(
+                buttonVariants({ size: "lg", variant: "shine" }),
+              )} self-center lg:self-start`}
             >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
+              Shop Now
             </Link>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
+        </section>
+        <Separator gradient />
+        <section className="relative flex flex-col items-center gap-10 bg-secondary py-10">
+          <Separator
+            label={
+              <TextFade direction="up" className="px-3 text-center">
+                <h2 className="text-5xl text-primary md:text-6xl">
+                  Shop by Categories
+                </h2>
+              </TextFade>
+            }
+            gradient
+          />
+          <div className="absolute bottom-0 left-0 right-0 top-32 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
+          <div className="3xl:grid-cols-6 z-50 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+            {Categories.map((category) => {
+              return (
+                <div key={category.title}>
+                  <HomeCategory
+                    image={category.image}
+                    title={category.title}
+                    description={category.description}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <AboutUsSection />
+        <Separator gradient />
+        <section className="flex flex-col items-center gap-10 p-5">
+          <span className="text-4xl font-semibold text-primary">
+            Supplying British Columbia for{" "}
+            <AnimatedNumberInView duration={5000} to={20} />+ years!
+          </span>
+          <div className="grid grid-rows-3 lg:grid-cols-3 lg:grid-rows-1">
+            <div>
+              <Image alt="Thanksgiving Promotion" src={Thanksgiving} />
+              <div className="flex h-64 w-[275px] flex-col gap-2 border p-3">
+                <span className="text-2xl font-semibold text-primary">
+                  THANKSGIVING PROMOTION
+                </span>
+                <p>
+                  To express our sincere gratitude, we`re launching a special
+                  sale from Thanksgiving Day October 9th until October 31st for
+                  your coming projects.
+                </p>
+              </div>
+            </div>
+            <div>
+              <Image alt="Careers" src={Careers} />
+              <div className="flex h-64 w-[275px] flex-col gap-2 border p-3 lg:border-y">
+                <span className="text-2xl font-semibold text-primary">
+                  CAREERS
+                </span>
+                <p>
+                  We`re always looking for fresh blood! See career opportunities
+                  at Ameleco today.
+                </p>
+              </div>
+            </div>
+            <div>
+              <Image alt="Contact us" src={ContactUs} />
+              <div className="flex h-64 w-[275px] flex-col gap-2 border p-3">
+                <span className="text-2xl font-semibold text-primary">
+                  CONTACT US
+                </span>
+                <p>
+                  Got any questions or want to chat with us further? Contact us
+                  by email or by phone.
+                </p>
+              </div>
             </div>
           </div>
-
-          {session?.user && <LatestPost />}
-        </div>
+        </section>
+        <section className="mb-10 flex flex-col items-center gap-10 p-5">
+          <Separator
+            label={
+              <TextFade direction="up" className="px-3 text-center">
+                <h2 className="text-4xl font-semibold text-primary">
+                  Why Choose Us
+                </h2>
+              </TextFade>
+            }
+            gradient
+          />
+          <div className="flex flex-col gap-10 lg:flex-row">
+            <div className="flex max-w-xs flex-col items-center text-center">
+              <Image
+                priority
+                src={"building.svg"}
+                height={100}
+                width={100}
+                alt="Buildings"
+              />
+              <span className="font-medium text-secondary-foreground">
+                CONTRIBUTED TO PROJECTS IN DIFFERENT SECTORS
+              </span>
+              <span className="font-semibold">
+                Commercial, residential, industry materials, etc.
+              </span>
+            </div>
+            <div className="flex max-w-xs flex-col items-center text-center">
+              <Image
+                priority
+                src={"experience.svg"}
+                height={100}
+                width={100}
+                alt="Buildings"
+              />
+              <div className="flex flex-col gap-6">
+                <span className="font-medium text-secondary-foreground">
+                  VAST EXPERIENCE
+                </span>
+                <span className="font-semibold">
+                  <AnimatedNumberInView duration={5000} to={20} from={10} />+
+                  years of experience
+                </span>
+              </div>
+            </div>
+            <div className="flex max-w-xs flex-col items-center text-center">
+              <Image
+                priority
+                src={"location.svg"}
+                height={100}
+                width={100}
+                alt="Buildings"
+                className="p-3"
+              />
+              <div className="flex flex-col gap-6">
+                <span className="font-medium text-secondary-foreground">
+                  BASED IN BRITISH COLUMBIA.
+                </span>
+                <span className="font-semibold">
+                  <AnimatedNumberInView duration={5000} to={3} /> locations
+                  including Richmond, Burnaby, and Port Coquitlam.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="flex flex-col text-xl sm:flex-row">
+          <div className="flex grow flex-col items-center justify-center gap-3 bg-secondary p-16 ">
+            <span>Create Account to Shop Online</span>
+            <Link href={"register"} className={`${cn(buttonVariants({ variant: "gooeyRight" }))}`}>
+              Create Account
+            </Link>
+          </div>
+          <div className="flex grow flex-col items-center justify-center gap-3 bg-[#343434] p-16 text-primary-foreground">
+            <span>Find Items You Need</span>
+            <Link
+              href={"shop"}
+              className={`${cn(
+                buttonVariants({ variant: "gooeyLeft" }),
+              )}`}
+            >
+              Shop Now
+            </Link>
+          </div>
+        </section>
       </main>
     </HydrateClient>
   );
