@@ -1,31 +1,56 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import { useReadLocalStorage } from "usehooks-ts";
+import { useLocalStorage } from "usehooks-ts";
+import ChangeBranch from "./ChangeBranch";
+import { Branches } from "./data";
+import { PhoneCall, Clock5, MapPin } from "lucide-react";
+import HeaderCard from "~/components/HeaderCard";
 
-export const Branches = [
-  {
-    name: "Richmond Branch",
-    address: "1952 KINGSWAY AVE UNIT 420, RICHMOND",
-    src: "RichmondBranch.svg",
-  },
-  {
-    name: "Port Coquitlam Branch",
-    address: "12331 BRIDGEPORT ROAD UNIT 3~4, PORT COQUITLAM",
-    src: "PortBranch.svg",
-  },
-  {
-    name: "Burnaby Branch",
-    address: "4012 MYRTLE ST, BURNABY",
-    src: "BurnabyBranch.svg",
-  },
-] as const;
+export function BranchesView() {
+  const [currentBranch] = useLocalStorage<
+    (typeof Branches)[number]
+  >("currentBranch", Branches[0], { initializeWithValue: false });
 
-function BranchView() {
-  const currentBranch = useReadLocalStorage<(typeof Branches)[number]>(
-    "currentBranch",
-    { initializeWithValue: false },
+  if (!currentBranch) return null;
+  return (
+    <div className=" flex flex-col items-center"> 
+      <span>{currentBranch.name}</span>
+      <ChangeBranch />
+      <div className="flex">
+        <HeaderCard
+          Icon={PhoneCall}
+          titleText={"Call Us Today"}
+          branchData={{
+            branch: currentBranch.name,
+            data: currentBranch.phone,
+          }}
+        />
+        <HeaderCard
+          Icon={Clock5}
+          titleText={"When We're Open"}
+          branchData={{
+            branch: currentBranch.name,
+            data: currentBranch.hours,
+          }}
+        />
+        <HeaderCard
+          Icon={MapPin}
+          titleText={"Where We At"}
+          branchData={{
+            branch: currentBranch.name,
+            data: currentBranch.header_address,
+          }}
+        />
+      </div>
+    </div>
   );
+}
+
+export function BranchView() {
+  const [currentBranch] = useLocalStorage<
+    (typeof Branches)[number]
+  >("currentBranch", Branches[0], { initializeWithValue: false });
 
   return (
     <>
@@ -39,11 +64,9 @@ function BranchView() {
           className={`${
             currentBranch?.name === branch.name ? "" : "invisible hidden"
           } h-[437px] w-[300px]`}
-          alt={`Visit us ${branch.address}`}
+          alt={`Visit us ${branch.visit_address}`}
         />
       ))}
     </>
   );
 }
-
-export default BranchView;

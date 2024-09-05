@@ -1,7 +1,7 @@
-'use client';
+"use client";
 import React from "react";
 import ChangeBranch from "./ChangeBranch";
-import BranchView from "./BranchView";
+import { BranchView } from "./BranchView";
 
 function Branch() {
   return (
