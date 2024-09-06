@@ -2,12 +2,12 @@ import React from "react";
 
 import Branches from "./Branches";
 import { TextFade } from "~/components/ui/TextFade";
-import { Separator } from "~/components/ui/Separator";
+import { PrettySeparator } from "~/components/ui/PrettySeparator";
 
 const AboutUsSection = () => {
   return (
     <section className="flex flex-col items-center gap-10 p-5">
-      <Separator
+      <PrettySeparator
         label={
           <TextFade direction="up" className="px-3 text-center">
             <h2 className="text-5xl text-primary md:text-6xl">About Us</h2>

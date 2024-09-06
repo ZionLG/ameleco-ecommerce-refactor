@@ -1,11 +1,11 @@
 import React from "react";
 import type { LucideIcon } from "lucide-react";
 
-import type { Branches } from "~/app/_components/AboutUs/Branches/data";
+import type { BranchName } from "~/app/_components/AboutUs/Branches/data";
 
 interface BranchData {
   data: string;
-  branch: (typeof Branches)[number]["name"];
+  branch: BranchName;
 }
 
 interface HeaderCardProps {

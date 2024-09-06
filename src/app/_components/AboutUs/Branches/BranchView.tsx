@@ -1,18 +1,15 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import { useLocalStorage } from "usehooks-ts";
 import ChangeBranch from "./ChangeBranch";
 import { Branches } from "./data";
 import { PhoneCall, Clock5, MapPin } from "lucide-react";
 import HeaderCard from "~/components/HeaderCard";
+import useBranch from "~/hooks/useBranch";
 
 export function BranchesView() {
-  const [currentBranch] = useLocalStorage<
-    (typeof Branches)[number]
-  >("currentBranch", Branches[0], { initializeWithValue: false });
+  const { currentBranch } = useBranch();
 
-  if (!currentBranch) return null;
   return (
     <div className=" flex flex-col items-center"> 
       <span>{currentBranch.name}</span>
@@ -48,9 +45,7 @@ export function BranchesView() {
 }
 
 export function BranchView() {
-  const [currentBranch] = useLocalStorage<
-    (typeof Branches)[number]
-  >("currentBranch", Branches[0], { initializeWithValue: false });
+  const { currentBranch } = useBranch();
 
   return (
     <>

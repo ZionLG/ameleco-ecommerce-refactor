@@ -8,7 +8,7 @@ import { TextEffect } from "~/components/core/text-effect";
 import HomeCategory, {
   type HomeCategoryProps,
 } from "~/app/_components/HomeCategory";
-import { Separator } from "~/components/ui/Separator";
+import { PrettySeparator } from "~/components/ui/PrettySeparator";
 import { TextFade } from "~/components/ui/TextFade";
 import AboutUsSection from "~/app/_components/AboutUs/AboutUsSection";
 import Accessories from "@public/Accessories.png";
@@ -100,9 +100,9 @@ export default async function Home() {
             </Link>
           </div>
         </section>
-        <Separator gradient />
+        <PrettySeparator gradient />
         <section className="relative flex flex-col items-center gap-10 bg-secondary py-10">
-          <Separator
+          <PrettySeparator
             label={
               <TextFade direction="up" className="px-3 text-center">
                 <h2 className="text-5xl text-primary md:text-6xl">
@@ -128,7 +128,7 @@ export default async function Home() {
           </div>
         </section>
         <AboutUsSection />
-        <Separator gradient />
+        <PrettySeparator gradient />
         <section className="flex flex-col items-center gap-10 p-5">
           <span className="text-4xl font-semibold text-primary">
             Supplying British Columbia for{" "}
@@ -175,7 +175,7 @@ export default async function Home() {
           </div>
         </section>
         <section className="mb-10 flex flex-col items-center gap-10 p-5">
-          <Separator
+          <PrettySeparator
             label={
               <TextFade direction="up" className="px-3 text-center">
                 <h2 className="text-4xl font-semibold text-primary">

@@ -6,7 +6,7 @@ import { BranchesView } from "~/app/_components/AboutUs/Branches/BranchView";
 //import ProductSearch from "./ProductSearch";
 import Sidebar from "./Sidebar";
 import { buttonVariants } from "./ui/button";
-import { Separator } from "./ui/Separator";
+import { PrettySeparator } from "./ui/PrettySeparator";
 import { TextEffect } from "./core/text-effect";
 import ProductSearch from "./ui/ProductSearch";
 
@@ -70,7 +70,7 @@ function Header() {
           {user && <DynamicHeaderCart />} */}
         </div>
       </nav>
-      <Separator gradient />
+      <PrettySeparator gradient />
     </header>
   );
 }

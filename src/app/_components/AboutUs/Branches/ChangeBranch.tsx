@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useCallback } from "react";
 import { ChevronDown } from "lucide-react";
 
 import {
@@ -9,14 +9,21 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { Branches } from "./data";
-import { useLocalStorage } from "usehooks-ts";
+import { Branches, isBranchName } from "./data";
+import useBranch from "~/hooks/useBranch";
 
 const ChangeBranch = () => {
-  const [currentBranch, setCurrentBranch] = useLocalStorage<
-    (typeof Branches)[number]
-  >("currentBranch", Branches[0], { initializeWithValue: false });
-  
+  const { currentBranch, setCurrentBranchByName } = useBranch();
+
+  const handleOnValueChange = useCallback(
+    (value: string) => {
+      if (isBranchName(value)) {
+        setCurrentBranchByName(value);
+      }
+    },
+    [setCurrentBranchByName],
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,14 +35,7 @@ const ChangeBranch = () => {
       <DropdownMenuContent className="w-fit">
         <DropdownMenuRadioGroup
           value={currentBranch.name}
-          onValueChange={(valueBranch) => {
-            const selectedBranch = Branches.find(
-              (branch) => branch.name === valueBranch,
-            );
-            if (selectedBranch) {
-              setCurrentBranch(selectedBranch);
-            }
-          }}
+          onValueChange={handleOnValueChange}
         >
           {Branches.map((branch) => (
             <DropdownMenuRadioItem key={branch.name} value={branch.name}>
