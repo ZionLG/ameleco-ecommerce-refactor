@@ -1,45 +1,46 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import ChangeBranch from "./ChangeBranch";
-import { Branches } from "./data";
+import { type Branch, Branches } from "./data";
 import { PhoneCall, Clock5, MapPin } from "lucide-react";
 import HeaderCard from "~/components/HeaderCard";
 import useBranch from "~/hooks/useBranch";
+import { cn } from "~/lib/utils";
 
-export function BranchesView() {
-  const { currentBranch } = useBranch();
+type HeaderCardGroupProps = {
+  direction: 'vertical' | 'horizontal';
+  branch: Branch;
+}
+
+export function HeaderCardGroup({ direction, branch }: HeaderCardGroupProps) {
+  const flexDirection = direction === 'vertical' ? 'flex-col' : 'flex-row';
 
   return (
-    <div className=" flex flex-col items-center"> 
-      <span>{currentBranch.name}</span>
-      <ChangeBranch />
-      <div className="flex">
-        <HeaderCard
-          Icon={PhoneCall}
-          titleText={"Call Us Today"}
-          branchData={{
-            branch: currentBranch.name,
-            data: currentBranch.phone,
-          }}
-        />
-        <HeaderCard
-          Icon={Clock5}
-          titleText={"When We're Open"}
-          branchData={{
-            branch: currentBranch.name,
-            data: currentBranch.hours,
-          }}
-        />
-        <HeaderCard
-          Icon={MapPin}
-          titleText={"Where We At"}
-          branchData={{
-            branch: currentBranch.name,
-            data: currentBranch.header_address,
-          }}
-        />
-      </div>
+    <div className={cn('flex', flexDirection)}>
+      <HeaderCard
+        Icon={PhoneCall}
+        titleText={"Call Us Today"}
+        branchData={{
+          branch: branch.name,
+          data: branch.phone,
+        }}
+      />
+      <HeaderCard
+        Icon={Clock5}
+        titleText={"When We're Open"}
+        branchData={{
+          branch: branch.name,
+          data: branch.hours,
+        }}
+      />
+      <HeaderCard
+        Icon={MapPin}
+        titleText={"Where We At"}
+        branchData={{
+          branch: branch.name,
+          data: branch.header_address,
+        }}
+      />
     </div>
   );
 }

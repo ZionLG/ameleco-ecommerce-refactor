@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import { cn } from "~/lib/utils";
-import { BranchesView } from "~/app/_components/AboutUs/Branches/BranchView";
+import { BranchesViewHeader } from "./BranchesViewHeader";
 //import ProductSearch from "./ProductSearch";
 import Sidebar from "./Sidebar";
 import { buttonVariants } from "./ui/button";
@@ -44,7 +44,7 @@ function Header() {
           </div>
         </div>
         <div className="invisible 2xl:visible hidden 2xl:inline-block" >
-          <BranchesView />
+          <BranchesViewHeader />
         </div>
       </div>
       <div className="inline-block grow lg:invisible lg:hidden">

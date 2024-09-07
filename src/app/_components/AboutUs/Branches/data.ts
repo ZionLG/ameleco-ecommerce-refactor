@@ -32,7 +32,9 @@ export const Branches = [
   },
 ] as const;
 
-export type BranchName = typeof Branches[number]["name"];
+export type Branch = typeof Branches[number];
+
+export type BranchName = Branch["name"];
 
 export function isBranchName(value: string): value is BranchName {
   return Branches.some(branch => branch.name === value);

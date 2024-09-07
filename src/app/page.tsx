@@ -4,7 +4,6 @@ import Image from "next/image";
 import { HydrateClient } from "~/trpc/server";
 import { cn } from "~/lib/utils";
 import { buttonVariants } from "~/components/ui/button";
-import { TextEffect } from "~/components/core/text-effect";
 import HomeCategory, {
   type HomeCategoryProps,
 } from "~/app/_components/HomeCategory";
@@ -14,7 +13,6 @@ import AboutUsSection from "~/app/_components/AboutUs/AboutUsSection";
 import Accessories from "@public/Accessories.png";
 import Box from "@public/Box.png";
 import Breaker from "@public/Breaker.png";
-import HomeBackground from "@public/electrician.jpg";
 import HeatingCooling from "@public/heating and cooling.png";
 import Lighting from "@public/Lighting.png";
 import Wires from "@public/Wires.png";
@@ -22,6 +20,7 @@ import Thanksgiving from "@public/Thanksgiving.jpg";
 import Careers from "@public/CAREERS.jpg";
 import ContactUs from "@public/contactus.jpg";
 import { AnimatedNumberInView } from "~/components/ui/animted-number-inview";
+import { HeroSection } from "./_components/HeroSection";
 
 const Categories = [
   {
@@ -57,49 +56,11 @@ const Categories = [
 ] as HomeCategoryProps[];
 
 export default async function Home() {
+  
   return (
     <HydrateClient>
       <main className="flex min-h-screen flex-col">
-        <section className="relative flex h-[650px] w-full flex-col justify-center overflow-hidden px-5 lg:px-28">
-          <Image
-            src={HomeBackground}
-            fill={true}
-            priority
-            alt={"Background Image"}
-            className="object-cover object-left"
-          />
-
-          <div className="absolute flex flex-col gap-4">
-            <div className="flex flex-col gap-10 text-center lg:gap-0 lg:text-start">
-              <TextEffect
-                per="char"
-                as="span"
-                className="text-6xl text-secondary-foreground"
-                preset="slide"
-              >
-                Ameleco Electrical Supply
-              </TextEffect>
-
-              <TextEffect
-                per="char"
-                as="span"
-                className="text-4xl text-secondary-foreground"
-                preset="blur"
-              >
-                Reliable & Professional
-              </TextEffect>
-            </div>
-
-            <Link
-              href={"shop"}
-              className={`${cn(
-                buttonVariants({ size: "lg", variant: "shine" }),
-              )} self-center lg:self-start`}
-            >
-              Shop Now
-            </Link>
-          </div>
-        </section>
+        <HeroSection/>
         <PrettySeparator gradient />
         <section className="relative flex flex-col items-center gap-10 bg-secondary py-10">
           <PrettySeparator

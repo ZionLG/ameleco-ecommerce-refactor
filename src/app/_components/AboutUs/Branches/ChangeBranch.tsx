@@ -24,6 +24,7 @@ const ChangeBranch = () => {
     [setCurrentBranchByName],
   );
 
+  if(!currentBranch) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
