@@ -55,7 +55,7 @@ const Categories = [
   },
 ] as HomeCategoryProps[];
 
-export default async function Home() {
+export default function Home() {
   
   return (
     <HydrateClient>

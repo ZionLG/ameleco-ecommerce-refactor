@@ -1,13 +1,15 @@
-"use client";
 import React from "react";
 import ChangeBranch from "./ChangeBranch";
 import { BranchView } from "./BranchView";
+import { getBranchName, setBranch } from "~/app/branchActions";
 
-function Branch() {
+async function Branch() {
+  const branchName = await getBranchName();
+
   return (
     <div className="flex flex-col items-center gap-3">
-      <ChangeBranch />
-      <BranchView />
+      <ChangeBranch onChange={setBranch} initialBranchName={branchName} />
+      <BranchView branchName={branchName} />
     </div>
   );
 }

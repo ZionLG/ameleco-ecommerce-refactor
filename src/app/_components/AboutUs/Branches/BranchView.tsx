@@ -1,10 +1,8 @@
-"use client";
 import React from "react";
 import Image from "next/image";
 import { type Branch, Branches } from "./data";
 import { PhoneCall, Clock5, MapPin } from "lucide-react";
-import HeaderCard from "~/components/HeaderCard";
-import useBranch from "~/hooks/useBranch";
+import HeaderCard from "~/app/_components/AboutUs/HeaderCard";
 import { cn } from "~/lib/utils";
 
 type HeaderCardGroupProps = {
@@ -45,9 +43,7 @@ export function HeaderCardGroup({ direction, branch }: HeaderCardGroupProps) {
   );
 }
 
-export function BranchView() {
-  const { currentBranch } = useBranch();
-
+export function BranchView({ branchName }: { branchName: string }) {
   return (
     <>
       {Branches.map((branch) => (
@@ -58,7 +54,7 @@ export function BranchView() {
           loading="lazy"
           width={628}
           className={`${
-            currentBranch?.name === branch.name ? "" : "invisible hidden"
+            branchName === branch.name ? "" : "invisible hidden"
           } h-[437px] w-[300px]`}
           alt={`Visit us ${branch.visit_address}`}
         />

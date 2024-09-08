@@ -4,11 +4,11 @@ import Link from "next/link";
 import { cn } from "~/lib/utils";
 import { BranchesViewHeader } from "./BranchesViewHeader";
 //import ProductSearch from "./ProductSearch";
-import Sidebar from "./Sidebar";
-import { buttonVariants } from "./ui/button";
-import { PrettySeparator } from "./ui/PrettySeparator";
-import { TextEffect } from "./core/text-effect";
-import ProductSearch from "./ui/ProductSearch";
+import Sidebar from "../../../components/Sidebar";
+import { buttonVariants } from "../../../components/ui/button";
+import { PrettySeparator } from "../../../components/ui/PrettySeparator";
+import { TextEffect } from "../../../components/core/text-effect";
+import ProductSearch from "../../../components/ui/ProductSearch";
 
 const MENU_LIST = [
   { text: "Home", href: "/" },

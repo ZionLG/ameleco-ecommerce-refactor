@@ -1,13 +1,13 @@
-'use client';
 import React from "react";
+import { Branches } from "~/app/_components/AboutUs/Branches/data";
+import { getBranchName } from "~/app/branchActions";
 import { BranchIframe } from "~/components/BranchIframe";
-import { Skeleton } from "~/components/ui/skeleton";
-import useBranch from "~/hooks/useBranch";
 
-function CurrentBranchIframe() {
-  const { currentBranch } = useBranch();
+async function CurrentBranchIframe() {
+  const branchName = await getBranchName();
+  const currentBranch = Branches.find((branch) => branch.name === branchName);
 
-  if (!currentBranch) return <Skeleton className="h-[350px] w-full" />;
+  if (!currentBranch) return null;
   return <BranchIframe branch={currentBranch} />;
 }
 

@@ -1,18 +1,23 @@
 import React from "react";
 import { Separator } from "~/components/ui/Separator";
 import CurrentBranchIframe from "./_components/CurrentBranchIframe";
-import { CurrentBranchNameWithChangeComponent } from "./_components/CurrentBranchNameWithChangeComponent";
 import { CurrentHeaderCardGroup } from "./_components/CurrentHeaderCardGroup";
 import { FeedbackForm } from "./_components/FeedbackForm";
+import { getBranchName } from "../branchActions";
+import { BranchNameWithChangeComponent } from "~/app/_components/shared/BranchNameWithChangeComponent";
 
-function ContactUs() {
+async function ContactUs() {
+  const branchName = await getBranchName();
   return (
     <main className="flex flex-col justify-center gap-10 px-10 py-5">
       <CurrentBranchIframe />
       <div className="flex flex-col gap-5">
         <div className="flex flex-col items-center gap-5 lg:flex-row">
           <span className="text-5xl font-bold">Contact Us - </span>
-          <CurrentBranchNameWithChangeComponent className="text-5xl font-bold" />
+          <BranchNameWithChangeComponent
+            branchName={branchName}
+            className="text-5xl font-bold"
+          />
         </div>
         <p>
           Hi, we are always open for cooperation and suggestions, contact us in
