@@ -5,6 +5,7 @@ import {
   primaryKey,
   sqliteTableCreator,
   text,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -15,6 +16,17 @@ import { type AdapterAccount } from "next-auth/adapters";
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = sqliteTableCreator((name) => `ameleco-ecommerce-refactor_${name}`);
+
+export const categories = createTable(
+  "category",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    name: text("name", { length: 256 }).unique(),
+  },
+  (category) => ({
+    nameIndex: uniqueIndex("category_name_idx").on(category.name),
+  })
+);
 
 export const posts = createTable(
   "post",

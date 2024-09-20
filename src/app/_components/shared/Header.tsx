@@ -26,7 +26,7 @@ function Header() {
           <TextEffect
             per="char"
             as="span"
-            className="text-5xl font-bold uppercase italic text-[#0070C0] lg:text-7xl"
+            className="font-bold uppercase italic text-[#0070C0] ~text-5xl/7xl"
             preset="slide"
           >
             AMELECO
