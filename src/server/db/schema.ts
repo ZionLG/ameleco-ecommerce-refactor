@@ -6,6 +6,7 @@ import {
   sqliteTableCreator,
   text,
   uniqueIndex,
+  
 } from "drizzle-orm/sqlite-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -54,6 +55,7 @@ export const users = createTable("user", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  role: text({ enum: ["admin", "user"] }).notNull().default("user"),
   name: text("name", { length: 255 }),
   email: text("email", { length: 255 }).notNull(),
   emailVerified: int("email_verified", {

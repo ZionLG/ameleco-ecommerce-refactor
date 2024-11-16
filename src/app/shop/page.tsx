@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Image from "next/image";
 import RoutePathBreadcrumbs from "./_components/RoutePathBreadcrumbs";
 
@@ -22,7 +22,9 @@ async function Shop() {
         </div>
         <Image src={"/shop.svg"} alt="Shop" priority width={500} height={500} />
       </div>
-      <RoutePathBreadcrumbs/>
+      <Suspense fallback={<></>}>
+        <RoutePathBreadcrumbs />
+      </Suspense>
       <div className="flex flex-col lg:flex-row lg:gap-5">
         {/* <div className="rounded-md bg-secondary lg:invisible lg:hidden">
           <Sheet>
