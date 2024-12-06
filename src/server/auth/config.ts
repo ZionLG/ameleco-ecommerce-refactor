@@ -40,11 +40,7 @@ export const authConfig = {
   providers: [
     Google({
       clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      profile(profile) {
-        console.log(profile)
-        return { role: profile.role ?? "user", ...profile}
-      },
+      clientSecret: env.GOOGLE_CLIENT_SECRET
     }),
     /**
      * ...add more providers here.

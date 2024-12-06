@@ -3,12 +3,13 @@ import Link from "next/link";
 
 import { cn } from "~/lib/utils";
 import { BranchesViewHeader } from "./BranchesViewHeader";
-//import ProductSearch from "./ProductSearch";
-import Sidebar from "../../../components/Sidebar";
-import { buttonVariants } from "../../../components/ui/button";
-import { PrettySeparator } from "../../../components/ui/PrettySeparator";
-import { TextEffect } from "../../../components/core/text-effect";
-import ProductSearch from "../../../components/ui/ProductSearch";
+import HeaderAuth from "./HeaderAuth";
+import { auth } from "~/server/auth";
+import { TextEffect } from "~/components/core/text-effect";
+import { buttonVariants } from "~/components/ui/button";
+import { PrettySeparator } from "~/components/ui/PrettySeparator";
+import ProductSearch from "~/components/ui/ProductSearch";
+import Sidebar from "~/components/Sidebar";
 
 const MENU_LIST = [
   { text: "Home", href: "/" },
@@ -18,7 +19,9 @@ const MENU_LIST = [
   { text: "Contact Us", href: "/contact-us" },
 ];
 
-function Header() {
+async function Header() {
+  const session = await auth()
+
   return (
     <header className="sticky top-0 z-50 flex flex-col gap-3 bg-background px-5 pt-5">
       <div className="2xl:grid 2xl:grid-cols-2">
@@ -37,8 +40,8 @@ function Header() {
 
           <div className="flex items-center justify-end gap-10 md:hidden">
             <div className="flex gap-2">
-              {/* <DynamicHeaderAuth />
-            {user && <DynamicHeaderCart />} */}
+              <HeaderAuth  user={session?.user}/>
+            {/* {user && <DynamicHeaderCart />} */}
             </div>
             <Sidebar MENU_LIST={MENU_LIST} />
           </div>
@@ -66,8 +69,8 @@ function Header() {
         </div>
 
         <div className="flex justify-end gap-2">
-          {/* <DynamicHeaderAuth />
-          {user && <DynamicHeaderCart />} */}
+        <HeaderAuth user={session?.user}/>
+        {/* {user && <DynamicHeaderCart />} */}
         </div>
       </nav>
       <PrettySeparator gradient />
