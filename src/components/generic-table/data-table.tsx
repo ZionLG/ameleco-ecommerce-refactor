@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   flexRender,
@@ -27,7 +26,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table"
+} from "~/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
 
 export interface DataTableToolbarProps<TData> {
@@ -39,7 +38,6 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   Toolbar?: React.ComponentType<DataTableToolbarProps<TData>>;
   MultiActions?: React.ComponentType<DataTableToolbarProps<TData>>;
-
   data: {
     isLoading: boolean;
     rows: TData[] | undefined;
@@ -69,11 +67,9 @@ export function DataTable<TData, TValue>({
   >({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(data.initialVisibility);
-
-  const defaultData = React.useMemo(() => [], []);
-
+console.log(rowSelection)
   const table = useReactTable({
-    data: data.rows ?? defaultData,
+    data: data.rows ?? [],
     columns,
     pageCount: data.pageCount ?? -1,
     state: {
@@ -85,7 +81,6 @@ export function DataTable<TData, TValue>({
     },
     onPaginationChange: data.setPagination,
     onSortingChange: data.setSorting,
-
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onColumnFiltersChange: data.setColumnFilters,
@@ -101,14 +96,11 @@ export function DataTable<TData, TValue>({
     manualFiltering: true,
     // debugTable: true,
   });
-  const { t, i18n } = useTranslation();
+
   return (
     <div className="w-full space-y-4">
       {Toolbar && <Toolbar table={table} isLoading={data.isLoading} />}
-      <div
-        className="rounded-md border"
-        dir={i18n.language !== "en" ? "rtl" : "ltr"}
-      >
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -152,7 +144,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {t("no-results")}
+                  No results found
                 </TableCell>
               </TableRow>
             )}

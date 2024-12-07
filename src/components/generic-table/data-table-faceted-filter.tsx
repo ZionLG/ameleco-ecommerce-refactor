@@ -1,11 +1,10 @@
-import type { Column } from "@tanstack/react-table";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { CheckCircle2, PlusCircleIcon } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import type { Column } from "@tanstack/react-table";
 
-import { Badge } from "../badge";
-import { Button } from "../button";
+import { cn } from "~/lib/utils";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -14,9 +13,9 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../popover";
-import { Separator } from "../separator";
+} from "~/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Separator } from "~/components/ui/Separator";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
@@ -26,26 +25,23 @@ interface DataTableFacetedFilterProps<TData, TValue> {
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
-  isSingleSelect?: boolean;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
   options,
-  isSingleSelect,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
-  const { t, i18n } = useTranslation();
+
   return (
     <Popover>
-      <PopoverTrigger asChild dir={i18n.language !== "en" ? "rtl" : "ltr"}>
+      <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="sm"
           className="h-8 border-dashed "
-          dir={i18n.language !== "en" ? "rtl" : "ltr"}
         >
           <PlusCircleIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2 " />
           {title}
@@ -64,7 +60,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     variant="secondary"
                     className="rounded-sm px-1 font-normal"
                   >
-                    {selectedValues.size} {t("faceted-filter.selected")}
+                    {selectedValues.size} selected
                   </Badge>
                 ) : (
                   options
@@ -87,12 +83,11 @@ export function DataTableFacetedFilter<TData, TValue>({
       <PopoverContent
         className="w-[200px] p-0"
         align="start"
-        dir={i18n.language !== "en" ? "rtl" : "ltr"}
       >
         <Command>
           <CommandInput placeholder={title} />
           <CommandList>
-            <CommandEmpty>{t("no-results")}</CommandEmpty>
+            <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);
@@ -101,18 +96,14 @@ export function DataTableFacetedFilter<TData, TValue>({
                     key={option.value}
                     onSelect={() => {
                       if (isSelected) {
-                        selectedValues.delete(option.value);
+                        selectedValues.delete(option.value)
                       } else {
-                        if (isSingleSelect) {
-                          selectedValues.clear();
-                        }
-
-                        selectedValues.add(option.value);
+                        selectedValues.add(option.value)
                       }
-                      const filterValues = Array.from(selectedValues);
+                      const filterValues = Array.from(selectedValues)
                       column?.setFilterValue(
-                        filterValues.length ? filterValues : undefined,
-                      );
+                        filterValues.length ? filterValues : undefined
+                      )
                     }}
                   >
                     <div
@@ -146,7 +137,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     onSelect={() => column?.setFilterValue(undefined)}
                     className="justify-center text-center"
                   >
-                    {t("faceted-filter.clear")}
+                    Clear filters
                   </CommandItem>
                 </CommandGroup>
               </>
