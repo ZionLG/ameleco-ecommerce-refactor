@@ -184,6 +184,7 @@ export function DataTable<TData>({
             </TableRow>
           </TableFooter>
         </Table>
+        {/*tes*/}
       </div>
       {data.pagination && <DataTablePagination table={table} />}
     </div>
