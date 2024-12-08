@@ -2,24 +2,46 @@ import { z } from "zod";
 
 import {
   createTRPCRouter,
-  protectedProcedure,
   publicProcedure,
+  adminProcedure,
 } from "~/server/api/trpc";
 import { categories } from "~/server/db/schema";
 
 export const categoriesRouter = createTRPCRouter({
-  getCategories: publicProcedure
-    .input(
-      z.object({
-        take: z.number().min(1).max(100),
-        skip: z.number().min(0),
-        sort: z.literal("asc").or(z.literal("desc")),
-        filter: z.string().optional(),
-      }),
-    )
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    return await ctx.db.query.categories.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+    });
+  }),
+  create: adminProcedure
+    .input(z.object({ name: z.string().min(1) }))
+    .mutation(async ({ ctx, input: { name } }) => {
+      await ctx.db.insert(categories).values({
+        name,
+      });
     }),
+  // getCategoriesAdmin: adminProcedure
+  //   .input(
+  //     z.object({
+  //       sort: z.array(
+  //         z.object({
+  //           id: z.enum(["name"]),
+  //           desc: z.boolean(),
+  //         }),
+  //       ),
+  //       filter: z.string().optional(),
+  //     }),
+  //   )
+  //   .query(async ({ input: { sort, filter }, ctx }) => {
+  //     return await ctx.db.query.categories.findMany({
+  //       orderBy: (categories, { asc, desc }) =>
+  //         sort.map(({ id, desc: isDesc }) =>
+  //           isDesc ? desc(categories[id]) : asc(categories[id]),
+  //         ),
+  //       where: (categories, { like }) => like(categories.name, `%${filter}%`),
+  //     });
+  //   }),
 });

@@ -43,7 +43,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           size="sm"
           className="h-8 border-dashed "
         >
-          <PlusCircleIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2 " />
+          <PlusCircleIcon className="h-4 w-4 mr-2" />
           {title}
           {selectedValues?.size > 0 && (
             <>
@@ -108,7 +108,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                   >
                     <div
                       className={cn(
-                        "flex h-4 w-4 items-center justify-center rounded-sm border border-primary ltr:mr-2 rtl:ml-2 ",
+                        "flex h-4 w-4 items-center justify-center rounded-sm border border-primary mr-2 ",
                         isSelected
                           ? "bg-primary text-primary-foreground"
                           : "opacity-50 [&_svg]:invisible",
@@ -117,7 +117,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                       <CheckCircle2 className={cn("h-4 w-4")} />
                     </div>
                     {option.icon && (
-                      <option.icon className="h-4 w-4 text-muted-foreground ltr:mr-2 rtl:ml-2" />
+                      <option.icon className="h-4 w-4 text-muted-foreground mr-2" />
                     )}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (

@@ -131,3 +131,26 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+  /**
+ * Protected (authenticated) Admin procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users as Admins, use this. It verifies
+ * the session is of an admin user.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const adminProcedure = protectedProcedure
+.use(({ ctx, next }) => {
+  if (ctx.session.user.role === "user") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  return next({
+    ctx: {
+      // infers the `session` as non-nullable
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import {
   flexRender,
@@ -34,56 +35,58 @@ export interface DataTableToolbarProps<TData> {
   isLoading: boolean;
 }
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData> {
+  columns: ColumnDef<TData, any>[];
   Toolbar?: React.ComponentType<DataTableToolbarProps<TData>>;
   MultiActions?: React.ComponentType<DataTableToolbarProps<TData>>;
+  FooterCell?: React.ReactNode;
   data: {
     isLoading: boolean;
     rows: TData[] | undefined;
-    pageCount?: number | undefined;
+    initialVisibility: VisibilityState;
+    rowClassname?: (row: TData) => string;
+    setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
     pagination?: {
       pageIndex: number;
       pageSize: number;
     };
-    sorting?: SortingState;
-    columnFilters?: ColumnFiltersState;
-    initialVisibility: VisibilityState;
-    setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
-    setSorting?: React.Dispatch<React.SetStateAction<SortingState>>;
     setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
-    rowClassname?: (row: TData) => string;
+    columnFilters?: ColumnFiltersState;
+    setSorting?: React.Dispatch<React.SetStateAction<SortingState>>;
+    sorting?: SortingState;
+  };
+  manual?: {
+    pageCount: number;
   };
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData>({
   columns,
   MultiActions,
   Toolbar,
   data,
-}: DataTableProps<TData, TValue>) {
+  manual,
+  FooterCell,
+}: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState<
     Record<string, boolean>
   >({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(data.initialVisibility);
-console.log(rowSelection)
+  console.log(rowSelection);
+
   const table = useReactTable({
     data: data.rows ?? [],
     columns,
-    pageCount: data.pageCount ?? -1,
+    enableRowSelection: true,
     state: {
-      pagination: data.pagination,
-      sorting: data.sorting,
       columnVisibility,
       rowSelection,
+      pagination: data.pagination,
+      sorting: data.sorting,
       columnFilters: data.columnFilters,
     },
-    onPaginationChange: data.setPagination,
-    onSortingChange: data.setSorting,
-    enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    onColumnFiltersChange: data.setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -91,9 +94,13 @@ console.log(rowSelection)
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    manualPagination: true,
-    manualSorting: true,
-    manualFiltering: true,
+    manualPagination: !!manual,
+    manualSorting: !!manual,
+    manualFiltering: !!manual,
+    onPaginationChange: data.setPagination,
+    onSortingChange: data.setSorting,
+    onColumnFiltersChange: data.setColumnFilters,
+    pageCount: manual?.pageCount,
     // debugTable: true,
   });
 
@@ -126,7 +133,7 @@ console.log(rowSelection)
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={`${data.rowClassname ? data.rowClassname(row.original) : ""}`}
+                  className={`${data.rowClassname?.(row.original)}`}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -149,30 +156,33 @@ console.log(rowSelection)
               </TableRow>
             )}
           </TableBody>
-          {MultiActions && !!table.getRowModel().rows?.length && (
-            <TableFooter className="border-t bg-background text-foreground">
+          <TableFooter className="border-t bg-background text-foreground">
+            {MultiActions && !!table.getRowModel().rows?.length && (
               <TableRow>
                 {Object.keys(rowSelection).length == 0 && (
-                  <TableCell colSpan={table.getVisibleLeafColumns().length - 1}>
-                    לא נבחרו שורות
+                  <TableCell colSpan={columns.length}>
+                    No rows selected
                   </TableCell>
                 )}
                 {Object.keys(rowSelection).length == 1 && (
-                  <TableCell colSpan={table.getVisibleLeafColumns().length - 1}>
-                    נבחרה שורה אחת
+                  <TableCell colSpan={columns.length}>
+                    1 row selected
                   </TableCell>
                 )}
                 {Object.keys(rowSelection).length > 1 && (
-                  <TableCell colSpan={table.getVisibleLeafColumns().length - 1}>
-                    נבחרו {Object.keys(rowSelection).length} שורות
+                  <TableCell colSpan={columns.length}>
+                    {Object.keys(rowSelection).length} rows selected
                   </TableCell>
                 )}
                 <TableCell>
                   <MultiActions table={table} isLoading={data.isLoading} />
                 </TableCell>
               </TableRow>
-            </TableFooter>
-          )}
+            )}
+            <TableRow>
+              <TableCell colSpan={columns.length}>{FooterCell}</TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
       {data.pagination && <DataTablePagination table={table} />}

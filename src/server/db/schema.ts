@@ -6,7 +6,6 @@ import {
   sqliteTableCreator,
   text,
   uniqueIndex,
-  
 } from "drizzle-orm/sqlite-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -22,7 +21,7 @@ export const categories = createTable(
   "category",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }).unique(),
+    name: text("name", { length: 256 }).unique().notNull(),
   },
   (category) => ({
     nameIndex: uniqueIndex("category_name_idx").on(category.name),
