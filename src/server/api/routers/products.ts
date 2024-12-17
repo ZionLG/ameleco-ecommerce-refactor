@@ -19,6 +19,16 @@ const createProductSchema = productsInsertSchema.pick({
 });
 
 export const productsRouter = createTRPCRouter({
+  getProduct: publicProcedure
+    .input(z.number())
+    .query(async ({ input, ctx }) => {
+      return await ctx.db.query.products.findFirst({
+        where: (product, { eq }) => eq(product.id, input),
+        with: {
+          categories: true,
+        }
+      });
+    }),
   getProducts: publicProcedure
     .input(
       z.object({
@@ -31,9 +41,7 @@ export const productsRouter = createTRPCRouter({
     .query(async ({ input: { sort, filter, limit, offset }, ctx }) => {
       const nameFilter = filter?.find((f) => f.id === "name")?.value;
 
-      let categoryIdFilter = filter?.find(
-        (f) => f.id === "categoryId",
-      )?.value;
+      let categoryIdFilter = filter?.find((f) => f.id === "categoryId")?.value;
 
       const categoryNameFilter = filter?.find(
         (f) => f.id === "categoryName",

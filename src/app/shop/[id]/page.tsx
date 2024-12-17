@@ -1,8 +1,9 @@
 import React from 'react'
+import Product from './_components/Product'
 
 async function ProductPage() {
   return (
-    <div>page</div>
+    <Product />
   )
 }
 

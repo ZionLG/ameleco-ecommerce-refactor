@@ -14,7 +14,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <Link
-      href={`/shop/${encodeURIComponent(product.name)}`}
+      href={`/shop/${encodeURIComponent(product.id)}`}
       className="w-fit justify-self-center"
     >
       <Card className="w-64">
