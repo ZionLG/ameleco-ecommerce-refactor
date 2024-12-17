@@ -2,12 +2,12 @@
 import { Checkbox } from "~/components/ui/checkbox";
 import { DataTableColumnHeader } from "~/components/generic-table/data-table-column-header";
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import type { getCategorySchema } from "./schema";
+import type { getProductSchema } from "./schema";
 import { DataTableRowActions } from "./data-table-row-actions";
 
-const columnHelper = createColumnHelper<getCategorySchema>();
+const columnHelper = createColumnHelper<getProductSchema>();
 
-export const columns: ColumnDef<getCategorySchema>[] = [
+export const columns: ColumnDef<getProductSchema>[] = [
   columnHelper.display({
     id: "select",
     header: ({ table }) => (
@@ -35,11 +35,14 @@ export const columns: ColumnDef<getCategorySchema>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    meta: {
-      headerClassName: "w-full",
-    },
     enableSorting: true,
     enableHiding: false,
+  },
+  {
+    accessorKey: "categories.name",
+    header: "Category Name",
+    enableSorting: true,
+    enableHiding: true,
   },
   {
     accessorKey: "createdAt",

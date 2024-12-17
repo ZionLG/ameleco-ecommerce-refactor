@@ -1,42 +1,43 @@
-'use client';
-import React, { useState } from "react";
+"use client";
+import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 import { Input } from "~/components/ui/input";
-import { ScrollArea } from "~/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { api } from "~/trpc/react";
 
 interface SearchProps<TProduct> {
   maxResults?: number;
-  categories: string[];
   products: TProduct[];
 }
-function ProductSearch< TProduct>({
+function ProductSearch<TProduct>({
   maxResults = 5,
-  categories,
   products,
 }: SearchProps<TProduct>) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    null,
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filtered, setFiltered] = useState<TProduct[]>([]);
   const router = useRouter();
 
-  const handleOnSelect = (itemName: string) => {
-    console.log("seleced");
-    setSearchTerm("");
-    void router.push(`/shop/${encodeURIComponent(itemName)}`);
-  };
+  const handleOnSelect = useCallback(
+    (itemName: string) => {
+      setSearchTerm("");
+      void router.push(`/shop/${encodeURIComponent(itemName)}`);
+    },
+    [setSearchTerm, router],
+  );
 
+  const { data: categories } = api.categories.getAll.useQuery(undefined, {
+    placeholderData: (previous) => previous,
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <div className="group/display relative flex flex-col px-2 pt-4">
@@ -45,26 +46,18 @@ function ProductSearch< TProduct>({
           <Select
             defaultValue="all categories"
             value={selectedCategory ?? "all categories"}
-            onValueChange={(selected) => {
-              setSelectedCategory(selected);
-            }}
+            onValueChange={setSelectedCategory}
           >
-            <SelectTrigger className="md:text-medium h-11 rounded-r-none bg-secondary text-xs font-semibold focus:ring-0 focus:ring-offset-0">
+            <SelectTrigger className="md:text-medium h-11 gap-2 rounded-r-none bg-secondary text-xs font-semibold focus:ring-0 focus:ring-offset-0">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-              <ScrollArea className="h-36 max-h-36 pr-3">
-                <SelectGroup className="max-h-36">
-                  <SelectItem value={"all categories"}>
-                    All Categories
-                  </SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </ScrollArea>
+              <SelectItem value={"all categories"}>All Categories</SelectItem>
+              {categories?.map((category) => (
+                <SelectItem key={category.id} value={category.name}>
+                  {category.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

@@ -1,3 +1,4 @@
+'use client';
 import React, { useCallback } from "react";
 import type { Table } from "@tanstack/react-table";
 import {

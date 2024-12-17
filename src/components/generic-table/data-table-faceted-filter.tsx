@@ -1,3 +1,4 @@
+'use client';
 import * as React from "react";
 import { CheckCircle2, PlusCircleIcon } from "lucide-react";
 import type { Column } from "@tanstack/react-table";

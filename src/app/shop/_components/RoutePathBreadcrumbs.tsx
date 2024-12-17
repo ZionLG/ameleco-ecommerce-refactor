@@ -33,11 +33,15 @@ export default function RoutePathBreadcrumbs() {
         {urlCategory && (
           <>
             <BreadcrumbSeparator />
-
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/shop?category=${urlCategory}`}>
-                  {urlCategory}
+                <Link
+                  href={{
+                    pathname: "/shop",
+                    query: { category: encodeURIComponent(urlCategory) },
+                  }}
+                >
+                  {decodeURIComponent(urlCategory)}
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>

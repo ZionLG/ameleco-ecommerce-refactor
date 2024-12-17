@@ -20,7 +20,7 @@ function HeaderAuth({ user }: { user?: User }) {
   }, [setIsOpen]);
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
       <DropdownMenuTrigger className="outline-none">
         <UserCircle2 strokeWidth={1} size={36} opacity={isOpen ? 0.5 : 1} />
       </DropdownMenuTrigger>
@@ -28,13 +28,13 @@ function HeaderAuth({ user }: { user?: User }) {
         <DropdownMenuContent>
           <DropdownMenuLabel>{user.name ?? user.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={closeMenu}>
             <Link href={"/account/profile"} className="w-full">
               Profile
             </Link>
           </DropdownMenuItem>
           {user.role === "admin" && (
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={closeMenu}>
               <Link href={"/admin"} className="w-full">
                 Staff Dashboard
               </Link>
@@ -73,57 +73,6 @@ function HeaderAuth({ user }: { user?: User }) {
       )}
     </DropdownMenu>
   );
-}
-
-{
-  /* <Popover
-  placement="bottom"
-  showArrow={true}
-  isOpen={isOpen}
-  onOpenChange={(open) => setIsOpen(open)}
->
-  <PopoverTrigger>
-    <UserCircle2 strokeWidth={1} size={36} />
-  </PopoverTrigger>
-  <PopoverContent>
-    <div className="flex flex-col  px-1 py-2">
-      {user ? (
-        <>
-          <div>{user.user_metadata.fullName}</div>
-          <Button
-            onClick={async () => {
-              await auth.signOut();
-            }}
-          >
-            Sign Out
-          </Button>
-        </>
-      ) : (
-        <>
-          <div className="text-small font-bold">Guest</div>
-          <div className="text-small">Lorem ipsum dolor sit amet.</div>
-          <div className="mt-2 flex items-center">
-            <Link
-              href={`/register`}
-              className={`${cn(buttonVariants({ size: "sm" }))} `}
-              onClick={() => setIsOpen(false)}
-            >
-              Register
-            </Link>
-            <Dot className="mx-2" />
-            <Link
-              href={`/login`}
-              className={`${cn(buttonVariants({ size: "sm" }))} `}
-              onClick={() => setIsOpen(false)}
-            >
-              Login
-            </Link>
-          </div>
-        </>
-      )}
-    </div>
-  </PopoverContent>
-</Popover>; */
 }
 
 export default HeaderAuth;

@@ -1,3 +1,4 @@
+'use client';
 import type { Column } from "@tanstack/react-table";
 import {
   ArrowUpDown,
@@ -20,6 +21,7 @@ export function DataTableColumnHeader<TData, TValue>({
     () => column.toggleSorting(column.getIsSorted() === "asc"),
     [column],
   );
+  
   return (
     <Button variant="ghost" onClick={handleToggle}>
       {title}

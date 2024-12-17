@@ -19,11 +19,11 @@ const sidebarNavItems = [
     href: "/admin/categories",
   },
   {
-    title: "items",
-    href: "/admin/items",
+    title: "Products",
+    href: "/admin/products",
   },
   {
-    title: "users",
+    title: "Users",
     href: "/admin/users",
   },
 ];
@@ -50,7 +50,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
         <aside className="-mx-4 lg:w-1/5">
           <SidebarNav items={sidebarNavItems} />
         </aside>
-        <div className="flex-1 lg:max-w-2xl">{children}</div>
+        <div className="flex-1 flex justify-center items-baseline">{children}</div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { type AdapterAccount } from "next-auth/adapters";
+import { createInsertSchema } from "drizzle-zod";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -15,18 +16,69 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = sqliteTableCreator((name) => `ameleco-ecommerce-refactor_${name}`);
+export const createTable = sqliteTableCreator(
+  (name) => `ameleco-ecommerce-refactor_${name}`,
+);
 
 export const categories = createTable(
   "category",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }).unique().notNull(),
+    name: text("name", { length: 32 }).unique().notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
   },
-  (category) => ({
-    nameIndex: uniqueIndex("category_name_idx").on(category.name),
-  })
+  (category) => [uniqueIndex("category_id_idx").on(category.id)],
 );
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  products: many(products),
+}));
+
+export const categoryInsertSchema = createInsertSchema(categories, {
+  name: (schema) => schema.min(3),
+});
+
+export const products = createTable(
+  "product",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    name: text("name", { length: 64 }).notNull(),
+    description: text("description"),
+    stock: int("stock", { mode: "number" }).notNull(),
+    price: int("price", { mode: "number" }).notNull(),
+    categoryId: int("category_id", { mode: "number" })
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    createdById: text("created_by", { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+    updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (product) => [
+    index("product_name_idx").on(product.name),
+    uniqueIndex("product_id_idx").on(product.id),
+  ],
+);
+
+export const productsInsertSchema = createInsertSchema(products, {
+  name: (schema) => schema.min(3),
+  stock: (schema) => schema.nonnegative(),
+  price: (schema) => schema.positive(),
+});
+
+export const productsRelations = relations(products, ({ one }) => ({
+  categories: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+}));
 
 export const posts = createTable(
   "post",
@@ -40,28 +92,37 @@ export const posts = createTable(
       .default(sql`(unixepoch())`)
       .notNull(),
     updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(
-      () => new Date()
+      () => new Date(),
     ),
   },
-  (example) => ({
-    createdByIdIdx: index("created_by_idx").on(example.createdById),
-    nameIndex: index("name_idx").on(example.name),
-  })
+  (example) => [
+    index("created_by_idx").on(example.createdById),
+    index("name_idx").on(example.name),
+  ],
 );
 
-export const users = createTable("user", {
-  id: text("id", { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  role: text({ enum: ["admin", "user"] }).notNull().default("user"),
-  name: text("name", { length: 255 }),
-  email: text("email", { length: 255 }).notNull(),
-  emailVerified: int("email_verified", {
-    mode: "timestamp",
-  }).default(sql`(unixepoch())`),
-  image: text("image", { length: 255 }),
-});
+export const users = createTable(
+  "user",
+  {
+    id: text("id", { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    role: text({ enum: ["admin", "user"] })
+      .notNull()
+      .default("user"),
+    name: text("name", { length: 255 }),
+    email: text("email", { length: 255 }).unique().notNull(),
+    emailVerified: int("email_verified", {
+      mode: "timestamp",
+    }).default(sql`(unixepoch())`),
+    image: text("image", { length: 255 }),
+  },
+  (user) => [
+    index("user_name_idx").on(user.name),
+    index("user_email_idx").on(user.email),
+  ],
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
@@ -86,12 +147,12 @@ export const accounts = createTable(
     id_token: text("id_token"),
     session_state: text("session_state", { length: 255 }),
   },
-  (account) => ({
-    compoundKey: primaryKey({
+  (account) => [
+    primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-    userIdIdx: index("account_user_id_idx").on(account.userId),
-  })
+    index("account_user_id_idx").on(account.userId),
+  ],
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -107,9 +168,7 @@ export const sessions = createTable(
       .references(() => users.id),
     expires: int("expires", { mode: "timestamp" }).notNull(),
   },
-  (session) => ({
-    userIdIdx: index("session_userId_idx").on(session.userId),
-  })
+  (session) => [index("session_userId_idx").on(session.userId)],
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -123,7 +182,5 @@ export const verificationTokens = createTable(
     token: text("token", { length: 255 }).notNull(),
     expires: int("expires", { mode: "timestamp" }).notNull(),
   },
-  (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  })
+  (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
 );

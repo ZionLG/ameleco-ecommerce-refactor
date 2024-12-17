@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+"use client";
+import React, { useMemo } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -46,10 +47,7 @@ interface DataTableProps<TData> {
     initialVisibility: VisibilityState;
     rowClassname?: (row: TData) => string;
     setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
-    pagination?: {
-      pageIndex: number;
-      pageSize: number;
-    };
+    pagination?: PaginationState;
     setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
     columnFilters?: ColumnFiltersState;
     setSorting?: React.Dispatch<React.SetStateAction<SortingState>>;
@@ -71,9 +69,12 @@ export function DataTable<TData>({
   const [rowSelection, setRowSelection] = React.useState<
     Record<string, boolean>
   >({});
+  const rowsSelectedLength = useMemo(
+    () => Object.keys(rowSelection).length,
+    [rowSelection],
+  );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(data.initialVisibility);
-  console.log(rowSelection);
 
   const table = useReactTable({
     data: data.rows ?? [],
@@ -114,7 +115,11 @@ export function DataTable<TData>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={header.column.columnDef.meta?.headerClassName}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -133,10 +138,12 @@ export function DataTable<TData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={`${data.rowClassname?.(row.original)}`}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cell.column.columnDef.meta?.cellClassName}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -157,34 +164,26 @@ export function DataTable<TData>({
             )}
           </TableBody>
           <TableFooter className="border-t bg-background text-foreground">
-            {MultiActions && !!table.getRowModel().rows?.length && (
+            {MultiActions && !!rowsSelectedLength && (
               <TableRow>
-                {Object.keys(rowSelection).length == 0 && (
-                  <TableCell colSpan={columns.length}>
-                    No rows selected
-                  </TableCell>
-                )}
-                {Object.keys(rowSelection).length == 1 && (
-                  <TableCell colSpan={columns.length}>
-                    1 row selected
-                  </TableCell>
-                )}
-                {Object.keys(rowSelection).length > 1 && (
-                  <TableCell colSpan={columns.length}>
-                    {Object.keys(rowSelection).length} rows selected
-                  </TableCell>
-                )}
-                <TableCell>
-                  <MultiActions table={table} isLoading={data.isLoading} />
+                <TableCell colSpan={columns.length}>
+                  <div className="flex items-center justify-between capitalize">
+                    <span>
+                      {rowsSelectedLength} row{rowsSelectedLength > 1 && "s"}{" "}
+                      selected
+                    </span>
+                    <MultiActions table={table} isLoading={data.isLoading} />
+                  </div>
                 </TableCell>
               </TableRow>
             )}
-            <TableRow>
-              <TableCell colSpan={columns.length}>{FooterCell}</TableCell>
-            </TableRow>
+            {(FooterCell ?? (MultiActions && !rowsSelectedLength)) && (
+              <TableRow>
+                <TableCell colSpan={columns.length}>{FooterCell}</TableCell>
+              </TableRow>
+            )}
           </TableFooter>
         </Table>
-        {/*tes*/}
       </div>
       {data.pagination && <DataTablePagination table={table} />}
     </div>

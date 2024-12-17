@@ -26,9 +26,9 @@ function CategoryCreation() {
   const { handleSubmit, control, reset } = form;
 
   const utils = api.useUtils();
-  const createPost = api.categories.create.useMutation({
+  const { mutate: createCategory } = api.categories.create.useMutation({
     onSuccess: async () => {
-      await utils.categories.getAll.invalidate();
+      await utils.categories.invalidate();
       reset();
       toast.success("Category has been created.")
     },
@@ -39,9 +39,9 @@ function CategoryCreation() {
 
   const onSubmit = useCallback(
     (values: z.infer<typeof categorySchema>) => {
-      createPost.mutate(values);
+      createCategory(values);
     },
-    [createPost],
+    [createCategory],
   );
 
   return (

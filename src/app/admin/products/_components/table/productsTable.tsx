@@ -10,29 +10,38 @@ import { DataTable } from "~/components/generic-table/data-table";
 import { api } from "~/trpc/react";
 import { columns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
-import CategoryCreation from "../CategoryCreation";
 import { DataTableMultiRowsActions } from "./data-table-multi-row-actions";
+import { productFilterSchema, productSortSchema } from "~/lib/validators";
 
-function CategoriesTable() {
-  const { data, isFetching } = api.categories.getAll.useQuery(undefined, {
-    placeholderData: (previous) => previous,
-    refetchOnWindowFocus: false,
-  });
 
+
+function ProductsTable() {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
+  const { pageIndex, pageSize } = pagination;
+
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  console.log(sorting)
+  const { data, isFetching } = api.products.getProducts.useQuery(
+    {
+      limit: pageSize,
+      offset: pageIndex * pageSize,
+      sort: productSortSchema.parse(sorting),
+      filter: productFilterSchema.parse(columnFilters),
+    },
+    {
+      placeholderData: (previous) => previous,
+      refetchOnWindowFocus: false,
+    },
+  );
 
   return (
     <DataTable
-      FooterCell={<CategoryCreation />}
       Toolbar={DataTableToolbar}
       MultiActions={DataTableMultiRowsActions}
       data={{
@@ -53,4 +62,4 @@ function CategoriesTable() {
   );
 }
 
-export default CategoriesTable;
+export default ProductsTable;
