@@ -11,14 +11,6 @@ async function Shop({
 }: {
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  // const products = api.shop.allProducts.useQuery(undefined, {
-  //   refetchOnWindowFocus: false,
-  // });
-  // const user = useUser();
-  // const categories = api.shop.getCategories.useQuery(undefined, {
-  //   refetchOnWindowFocus: false,
-  // });
-
   const searchParamsData = await searchParams;
   const filter = [
     searchParamsData.category && {

@@ -16,6 +16,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <Link
       href={`/shop/${encodeURIComponent(product.id)}`}
       className="w-fit justify-self-center"
+      scroll={true}
     >
       <Card className="w-64">
         <CardContent className="items-center gap-2 overflow-visible p-2">
