@@ -29,14 +29,80 @@ export const categories = createTable(
       .default(sql`(unixepoch())`)
       .notNull(),
   },
-  (category) => [uniqueIndex("category_id_idx").on(category.id)],
+  (category) => [
+    uniqueIndex("category_id_idx").on(category.id),
+    uniqueIndex("category_name_idx").on(category.name),
+  ],
 );
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
-  products: many(products),
+  subCategories: many(subCategories),
 }));
 
 export const categoryInsertSchema = createInsertSchema(categories, {
+  name: (schema) => schema.min(3),
+});
+
+export const subCategories = createTable(
+  "sub_category",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    name: text("name", { length: 32 }).unique().notNull(),
+    categoryId: int("category_id", { mode: "number" })
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+  },
+  (subCategory) => [
+    uniqueIndex("sub_category_id_idx").on(subCategory.id),
+    uniqueIndex("sub_category_name_idx").on(subCategory.name),
+  ],
+);
+
+export const subCategoriesRelations = relations(subCategories, ({ many, one }) => ({
+  subSubCategories: many(subSubCategories),
+  category: one(categories, {
+    fields: [subCategories.categoryId],
+    references: [categories.id],
+  }),
+}));
+
+export const subCategoryInsertSchema = createInsertSchema(subCategories, {
+  name: (schema) => schema.min(3),
+});
+
+export const subSubCategories = createTable(
+  "sub_sub_category",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    name: text("name", { length: 32 }).unique().notNull(),
+    subCategoryId: int("sub_category_id", { mode: "number" })
+      .notNull()
+      .references(() => subCategories.id, { onDelete: "cascade" }),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+  },
+  (subSubCategory) => [
+    uniqueIndex("sub_sub_category_id_idx").on(subSubCategory.id),
+    uniqueIndex("sub_sub_category_name_idx").on(subSubCategory.name),
+  ],
+);
+
+export const subSubCategoriesRelations = relations(
+  subSubCategories,
+  ({ many, one }) => ({
+    products: many(products),
+    subCategory: one(subCategories, {
+      fields: [subSubCategories.subCategoryId],
+      references: [subCategories.id],
+    }),
+  }),
+);
+
+export const subSubCategoryInsertSchema = createInsertSchema(subSubCategories, {
   name: (schema) => schema.min(3),
 });
 
@@ -48,9 +114,9 @@ export const products = createTable(
     description: text("description"),
     stock: int("stock", { mode: "number" }).notNull(),
     price: int("price", { mode: "number" }).notNull(),
-    categoryId: int("category_id", { mode: "number" })
+    subSubCategoryId: int("sub_sub_category_id", { mode: "number" })
       .notNull()
-      .references(() => categories.id, { onDelete: "cascade" }),
+      .references(() => subSubCategories.id, { onDelete: "cascade" }),
     createdById: text("created_by", { length: 255 })
       .notNull()
       .references(() => users.id),
@@ -74,9 +140,9 @@ export const productsInsertSchema = createInsertSchema(products, {
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
-  categories: one(categories, {
-    fields: [products.categoryId],
-    references: [categories.id],
+  subSubCategory: one(subSubCategories, {
+    fields: [products.subSubCategoryId],
+    references: [subSubCategories.id],
   }),
 }));
 

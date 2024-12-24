@@ -31,7 +31,7 @@ function Products() {
       {products?.map((product) => {
         if (
           !urlCategory ||
-          product.categories.name === decodeURIComponent(urlCategory)
+          product.subSubCategory.name === decodeURIComponent(urlCategory)
         ) {
           return <ProductCard product={product} key={product.id} />;
         }

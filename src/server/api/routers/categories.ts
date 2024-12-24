@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 import { z } from "zod";
+import { categorySortSchema, categoryFilterSchema } from "~/lib/validators";
 
 import {
   createTRPCRouter,
@@ -12,13 +13,89 @@ import { categories, categoryInsertSchema } from "~/server/db/schema";
 const createCategorySchema = categoryInsertSchema.pick({ name: true });
 
 export const categoriesRouter = createTRPCRouter({
-  getAll: publicProcedure
-    .input(z.object({ sortByName: z.boolean() }).optional())
-    .query(async ({ ctx, input }) => {
+  getCategories: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100),
+        offset: z.number().min(0),
+        sort: categorySortSchema,
+        filter: categoryFilterSchema,
+      }),
+    )
+    .query(async ({ ctx, input: { limit, offset, filter, sort } }) => {
+      const nameFilter = filter?.find((f) => f.id === "name")?.value;
+
       return await ctx.db.query.categories.findMany({
-        orderBy: input?.sortByName
-          ? (categories, { asc }) => asc(categories.name)
+        limit,
+        offset,
+        orderBy: sort
+          ? (categories, { asc, desc }) =>
+              sort.map(({ id, desc: isDesc }) =>
+                isDesc ? desc(categories[id]) : asc(categories[id]),
+              )
           : undefined,
+        where: (categories, { like, and }) =>
+          and(
+            nameFilter ? like(categories.name, `%${nameFilter}%`) : undefined,
+          ),
+      });
+    }),
+  getSubCategories: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100),
+        offset: z.number().min(0),
+        sort: categorySortSchema,
+        filter: categoryFilterSchema,
+      }),
+    )
+    .query(async ({ ctx, input: { limit, offset, filter, sort } }) => {
+      const nameFilter = filter?.find((f) => f.id === "name")?.value;
+
+      return await ctx.db.query.subCategories.findMany({
+        limit,
+        offset,
+        orderBy: sort
+          ? (subCategories, { asc, desc }) =>
+              sort.map(({ id, desc: isDesc }) =>
+                isDesc ? desc(subCategories[id]) : asc(subCategories[id]),
+              )
+          : undefined,
+        where: (subCategories, { like, and }) =>
+          and(
+            nameFilter
+              ? like(subCategories.name, `%${nameFilter}%`)
+              : undefined,
+          ),
+      });
+    }),
+  getSubSubCategories: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100),
+        offset: z.number().min(0),
+        sort: categorySortSchema,
+        filter: categoryFilterSchema,
+      }),
+    )
+    .query(async ({ ctx, input: { limit, offset, filter, sort } }) => {
+      const nameFilter = filter?.find((f) => f.id === "name")?.value;
+
+      return await ctx.db.query.subSubCategories.findMany({
+        limit,
+        offset,
+        orderBy: sort
+          ? (subSubCategories, { asc, desc }) =>
+              sort.map(({ id, desc: isDesc }) =>
+                isDesc ? desc(subSubCategories[id]) : asc(subSubCategories[id]),
+              )
+          : undefined,
+        where: (subSubCategories, { like, and }) =>
+          and(
+            nameFilter
+              ? like(subSubCategories.name, `%${nameFilter}%`)
+              : undefined,
+          ),
       });
     }),
   create: adminProcedure

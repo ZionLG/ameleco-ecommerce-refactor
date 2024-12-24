@@ -3,7 +3,7 @@ import ProductCreation from "./_components/ProductCreation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import ProductsTable from "./_components/table/productsTable";
 
-function Products() {
+async function Products() {
   return (
     <main className="flex flex-col justify-center items-center gap-10 px-10 py-5">
       <Tabs defaultValue="view">

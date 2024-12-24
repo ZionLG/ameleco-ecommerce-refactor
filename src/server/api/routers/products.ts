@@ -15,7 +15,7 @@ const createProductSchema = productsInsertSchema.pick({
   stock: true,
   price: true,
   description: true,
-  categoryId: true,
+  subSubCategoryId: true,
 });
 
 export const productsRouter = createTRPCRouter({
@@ -25,8 +25,16 @@ export const productsRouter = createTRPCRouter({
       return await ctx.db.query.products.findFirst({
         where: (product, { eq }) => eq(product.id, input),
         with: {
-          categories: true,
-        }
+          subSubCategory: {
+            with: {
+              subCategory: {
+                with: {
+                  category: true,
+                },
+              },
+            },
+          },
+        },
       });
     }),
   getProducts: publicProcedure
@@ -41,26 +49,34 @@ export const productsRouter = createTRPCRouter({
     .query(async ({ input: { sort, filter, limit, offset }, ctx }) => {
       const nameFilter = filter?.find((f) => f.id === "name")?.value;
 
-      let categoryIdFilter = filter?.find((f) => f.id === "categoryId")?.value;
+     // let categoryIdFilter = filter?.find((f) => f.id === "categoryId")?.value;
 
-      const categoryNameFilter = filter?.find(
-        (f) => f.id === "categoryName",
-      )?.value;
+      // const categoryNameFilter = filter?.find(
+      //   (f) => f.id === "categoryName",
+      // )?.value;
 
-      if (categoryNameFilter) {
-        const categories = await ctx.db.query.categories.findMany({
-          where: (categories, { inArray }) =>
-            inArray(categories.name, categoryNameFilter),
-        });
+      // if (categoryNameFilter) {
+      //   const categories = await ctx.db.query.categories.findMany({
+      //     where: (categories, { inArray }) =>
+      //       inArray(categories.name, categoryNameFilter),
+      //   });
 
-        categoryIdFilter = categories.map((category) => category.id);
-      }
+      //   categoryIdFilter = categories.map((category) => category.id);
+      // }
 
       return await ctx.db.query.products.findMany({
         limit,
         offset,
         with: {
-          categories: true,
+          subSubCategory: {
+            with: {
+              subCategory: {
+                with: {
+                  category: true,
+                },
+              },
+            },
+          },
         },
         orderBy: sort
           ? (products, { asc, desc }) =>
@@ -68,12 +84,12 @@ export const productsRouter = createTRPCRouter({
                 isDesc ? desc(products[id]) : asc(products[id]),
               )
           : undefined,
-        where: (products, { like, inArray, and }) =>
+        where: (products, { like, and }) =>
           and(
             nameFilter ? like(products.name, `%${nameFilter}%`) : undefined,
-            categoryIdFilter
-              ? inArray(products.categoryId, categoryIdFilter)
-              : undefined,
+            // categoryIdFilter
+            //   ? inArray(products., categoryIdFilter)
+            //   : undefined,
           ),
       });
     }),

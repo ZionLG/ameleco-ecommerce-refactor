@@ -12,23 +12,35 @@ import { columns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
 import CategoryCreation from "../CategoryCreation";
 import { DataTableMultiRowsActions } from "./data-table-multi-row-actions";
+import { useSearchParams } from "next/navigation";
 
 function CategoriesTable() {
-  const { data, isFetching } = api.categories.getAll.useQuery(undefined, {
-    placeholderData: (previous) => previous,
-    refetchOnWindowFocus: false,
-  });
+  const searchParams = useSearchParams();
 
+  const pageSize = parseInt(searchParams.get("pageSize") ?? "5");
+  const pageIndex = parseInt(searchParams.get("pageIndex") ?? "1");
+
+  const { data, isFetching } = api.categories.getCategories.useQuery(
+    {
+      limit: pageSize,
+      offset: pageSize * (pageIndex - 1),
+    },
+    {
+      placeholderData: (previous) => previous,
+      refetchOnWindowFocus: false,
+    },
+  );
+  
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 5,
+    pageIndex: pageIndex - 1,
+    pageSize,
   });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  console.log(sorting)
+  console.log(sorting);
 
   return (
     <DataTable
