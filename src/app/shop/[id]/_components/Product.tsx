@@ -25,7 +25,7 @@ function Product() {
   );
 
   if (data) {
-    const { name, price, stock, id, description, categories } = data;
+    const { name, price, stock, id, description, subSubCategory } = data;
     return (
       <main className="flex flex-col justify-center gap-10 bg-secondary px-10 py-5">
         <Breadcrumb>
@@ -67,7 +67,7 @@ function Product() {
           </div>
           <div className="3xl:top-64 top-60 flex h-fit flex-col gap-10 rounded-sm bg-background px-10 py-5 shadow-md md:sticky lg:top-52">
             <span className="text-2xl font-bold">{name}</span>
-            <span className="text-sm">{categories.name}</span>
+            <span className="text-sm">{subSubCategory.name}</span>
             <Separator className="my-2" />
             <span className="flex min-w-fit items-center gap-2">
               Price: ${price}
@@ -118,7 +118,7 @@ function Product() {
                 src={"https://placehold.co/500.png"}
               />
               <span className="text-2xl font-bold">{name}</span>
-              <span className="text-sm">{categories.name}</span>
+              <span className="text-sm">{subSubCategory.name}</span>
               <Separator className="my-2" />
               <span className="flex min-w-fit items-center gap-2">
                 Price: ${price}
