@@ -34,7 +34,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
 
   const handleOnDeleteClick = useCallback(() => {
     setAlertDelete(true);
-  }, [setAlertDelete]);
+  }, []);
 
   const onDeleteAction = useCallback(() => {
     deleteCategory({

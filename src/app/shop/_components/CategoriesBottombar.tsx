@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { api } from "~/trpc/react";
-import { buttonVariants } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { ChevronDown } from "lucide-react";
 import {
@@ -17,10 +17,20 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 
 function CategoriesBottombar() {
   const searchParams = useSearchParams();
-  const { data: categories } = api.categories.getAll.useQuery({ sortByName: true }, {
-    placeholderData: (previous) => previous,
-    refetchOnWindowFocus: false,
-  });
+  const {
+    data: categories,
+    fetchNextPage,
+    hasNextPage,
+    status,
+  } = api.categories.getCategoriesCursor.useInfiniteQuery(
+    { limit: 10 },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor },
+  );
+
+  const transformedCategories = useMemo(
+    () => categories?.pages.flatMap((page) => page.items),
+    [categories],
+  );
 
   const urlCategory = searchParams.get("category");
 
@@ -36,25 +46,34 @@ function CategoriesBottombar() {
         </SheetHeader>
         <ScrollArea className="h-56 pr-3">
           <div className="flex flex-col">
-            {categories?.map((category) => (
+            {transformedCategories?.map((category) => (
               <Link
                 href={{
                   pathname: "/shop",
                   query: { category: encodeURIComponent(category.name) },
                 }}
                 key={category.id}
-                className={` ${cn(
+                className={cn(
                   buttonVariants({
                     variant: "link",
                     className:
                       urlCategory === encodeURIComponent(category.name) &&
                       "font-semibold text-blue-400",
                   }),
-                )} `}
+                )}
               >
                 {category.name}
               </Link>
             ))}
+            {hasNextPage && (
+              <Button
+                onClick={() => fetchNextPage()}
+                disabled={status === "pending"}
+                variant={"outline"}
+              >
+                Load more
+              </Button>
+            )}
           </div>
         </ScrollArea>
       </SheetContent>

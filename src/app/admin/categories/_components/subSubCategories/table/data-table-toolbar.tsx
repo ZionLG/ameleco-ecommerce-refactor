@@ -4,11 +4,11 @@ import type { Table } from "@tanstack/react-table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Loader2, X } from "lucide-react";
-import { type getProductSchema } from "./schema";
+import { type getSubSubCategorySchema } from "./schema";
 import { type ChangeEvent, useCallback } from "react";
 
 export interface DataTableToolbarProps {
-  table: Table<getProductSchema>;
+  table: Table<getSubSubCategorySchema>;
   isLoading: boolean;
 }
 
@@ -33,7 +33,7 @@ export function DataTableToolbar({ table, isLoading }: DataTableToolbarProps) {
       <div className="flex w-full flex-1 flex-row gap-2 lg:items-center">
         <div className="flex grow flex-col gap-2 lg:grow-0">
           <Input
-            placeholder="Product name"
+            placeholder="Sub Sub Category name"
             value={(getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={handleOnChange}
             className="h-8 w-full lg:w-[175px]"
@@ -47,7 +47,7 @@ export function DataTableToolbar({ table, isLoading }: DataTableToolbarProps) {
             className="h-8 px-2 lg:px-3"
           >
             Reset
-            <X className="h-4 w-4 ml-2" />
+            <X className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>

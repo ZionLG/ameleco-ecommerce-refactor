@@ -16,8 +16,8 @@ export const categoriesRouter = createTRPCRouter({
   getCategories: publicProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(100),
-        offset: z.number().min(0),
+        limit: z.number().positive().max(100).default(5),
+        offset: z.number().nonnegative().default(0),
         sort: categorySortSchema,
         filter: categoryFilterSchema,
       }),
@@ -40,63 +40,33 @@ export const categoriesRouter = createTRPCRouter({
           ),
       });
     }),
-  getSubCategories: publicProcedure
+
+  getCategoriesCursor: publicProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(100),
-        offset: z.number().min(0),
-        sort: categorySortSchema,
-        filter: categoryFilterSchema,
+        limit: z.number().positive().max(100).default(5),
+        cursor: z.number().nullish(),
       }),
     )
-    .query(async ({ ctx, input: { limit, offset, filter, sort } }) => {
-      const nameFilter = filter?.find((f) => f.id === "name")?.value;
-
-      return await ctx.db.query.subCategories.findMany({
-        limit,
-        offset,
-        orderBy: sort
-          ? (subCategories, { asc, desc }) =>
-              sort.map(({ id, desc: isDesc }) =>
-                isDesc ? desc(subCategories[id]) : asc(subCategories[id]),
-              )
-          : undefined,
-        where: (subCategories, { like, and }) =>
-          and(
-            nameFilter
-              ? like(subCategories.name, `%${nameFilter}%`)
-              : undefined,
-          ),
+    .query(async ({ ctx, input: { limit, cursor } }) => {
+      console.log(cursor)
+      const items = await ctx.db.query.categories.findMany({
+        limit: limit + 1,
+        where: (categories, { gte }) =>
+          cursor ? gte(categories.id, cursor) : undefined,
+        orderBy: (categories, { asc }) => asc(categories.id),
       });
-    }),
-  getSubSubCategories: publicProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(100),
-        offset: z.number().min(0),
-        sort: categorySortSchema,
-        filter: categoryFilterSchema,
-      }),
-    )
-    .query(async ({ ctx, input: { limit, offset, filter, sort } }) => {
-      const nameFilter = filter?.find((f) => f.id === "name")?.value;
 
-      return await ctx.db.query.subSubCategories.findMany({
-        limit,
-        offset,
-        orderBy: sort
-          ? (subSubCategories, { asc, desc }) =>
-              sort.map(({ id, desc: isDesc }) =>
-                isDesc ? desc(subSubCategories[id]) : asc(subSubCategories[id]),
-              )
-          : undefined,
-        where: (subSubCategories, { like, and }) =>
-          and(
-            nameFilter
-              ? like(subSubCategories.name, `%${nameFilter}%`)
-              : undefined,
-          ),
-      });
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
     }),
   create: adminProcedure
     .input(createCategorySchema)

@@ -23,7 +23,7 @@ async function Shop({
     },
   ].filter((filter) => !!filter);
 
-  void api.categories.getAll.prefetch({ sortByName: true });
+  void api.categories.getCategoriesCursor.prefetch({ limit: 10 });
   void api.products.getProducts.prefetch({
     limit: 20,
     offset: 0,

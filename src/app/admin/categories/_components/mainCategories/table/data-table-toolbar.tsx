@@ -13,15 +13,17 @@ export interface DataTableToolbarProps {
 }
 
 export function DataTableToolbar({ table, isLoading }: DataTableToolbarProps) {
+  const { resetColumnFilters, getColumn } = table;
+
   const handleFilterReset = useCallback(() => {
-    table.resetColumnFilters();
-  }, [table]);
+    resetColumnFilters();
+  }, [resetColumnFilters]);
 
   const handleOnChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      table.getColumn("name")?.setFilterValue(event.target.value);
+      getColumn("name")?.setFilterValue(event.target.value);
     },
-    [table],
+    [getColumn],
   );
 
   const isFiltered = table.getState().columnFilters?.length > 0;
@@ -32,7 +34,7 @@ export function DataTableToolbar({ table, isLoading }: DataTableToolbarProps) {
         <div className="flex grow flex-col gap-2 lg:grow-0">
           <Input
             placeholder="Category name"
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            value={(getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={handleOnChange}
             className="h-8 w-full lg:w-[175px]"
           />

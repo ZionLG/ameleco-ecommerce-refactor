@@ -10,31 +10,29 @@ import { DataTable } from "~/components/generic-table/data-table";
 import { api } from "~/trpc/react";
 import { columns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
-import CategoryCreation from "../CategoryCreation";
+import SubSubCategoryCreation from "../SubSubCategoryCreation";
 import { DataTableMultiRowsActions } from "./data-table-multi-row-actions";
-import { useSearchParams } from "next/navigation";
 
 function CategoriesTable() {
-  const searchParams = useSearchParams();
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+  const { pageIndex, pageSize } = pagination;
 
-  const pageSize = parseInt(searchParams.get("pageSize") ?? "5");
-  const pageIndex = parseInt(searchParams.get("pageIndex") ?? "1");
-
-  const { data, isFetching } = api.categories.getCategories.useQuery(
+  const { data, isPending } = api.subSubCategories.getSubSubCategories.useQuery(
     {
       limit: pageSize,
-      offset: pageSize * (pageIndex - 1),
+      offset: pageSize * pageIndex,
+      includeCategory: true,
+      includeSubCategory: true,
     },
     {
       placeholderData: (previous) => previous,
       refetchOnWindowFocus: false,
     },
   );
-  
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: pageIndex - 1,
-    pageSize,
-  });
+
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -44,11 +42,11 @@ function CategoriesTable() {
 
   return (
     <DataTable
-      FooterCell={<CategoryCreation />}
+      FooterCell={<SubSubCategoryCreation />}
       Toolbar={DataTableToolbar}
       MultiActions={DataTableMultiRowsActions}
       data={{
-        isLoading: isFetching,
+        isLoading: isPending,
         rows: data,
         initialVisibility: {
           id: false,

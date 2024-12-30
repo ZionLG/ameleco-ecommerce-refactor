@@ -1,43 +1,26 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
+import { Form } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+
 import { Loader2 } from "lucide-react";
-import { Textarea } from "~/components/ui/textarea";
+import FormInput from "~/components/form/FormInput";
+import { useDebounce } from "~/hooks/useDebounce";
+import FormCombobox from "~/components/form/FormCombobox";
 
 const productSchema = z.object({
   name: z.string().min(3),
   description: z.string(),
   price: z.number().positive(),
   stock: z.number().nonnegative(),
-  categoryId: z
-    .number({
-      required_error: "Category is required",
-      invalid_type_error: "Category must be a Id",
-    })
-    .nonnegative({ message: "Category is required" }),
+  subSubCategoryId: z.string().min(1, "Category is required"),
 });
 
 function ProductCreation() {
@@ -46,7 +29,7 @@ function ProductCreation() {
     defaultValues: {
       name: "",
       description: "",
-      categoryId: -1,
+      subSubCategoryId: "",
       price: 0,
       stock: 0,
     },
@@ -55,8 +38,15 @@ function ProductCreation() {
   const { handleSubmit, control, reset } = form;
 
   const utils = api.useUtils();
-  const { data: categories, isPending: isCategoriesPending } =
-    api.categories.getAll.useQuery();
+
+  const [subSubCategorySearch, setSubSubCategorySearch] = useState("");
+
+  const subSubCategorySearchDebounce = useDebounce(subSubCategorySearch, 500);
+
+  const { data: subSubCategories, isPending: isSubSubCategoriesPending } =
+    api.subSubCategories.getSubSubCategories.useQuery({
+      filter: [{ id: "name", value: subSubCategorySearchDebounce }],
+    });
 
   const { mutate, isPending } = api.products.create.useMutation({
     onSuccess: async () => {
@@ -71,9 +61,21 @@ function ProductCreation() {
 
   const onSubmit = useCallback(
     (values: z.infer<typeof productSchema>) => {
-      mutate(values);
+      mutate({
+        ...values,
+        subSubCategoryId: parseInt(values.subSubCategoryId),
+      });
     },
     [mutate],
+  );
+
+  const transformedSubSubCategoriess = useMemo(
+    () =>
+      subSubCategories?.map((subSubCategory) => ({
+        label: subSubCategory.name,
+        value: subSubCategory.id,
+      })),
+    [subSubCategories],
   );
 
   return (
@@ -82,100 +84,37 @@ function ProductCreation() {
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col justify-between gap-5"
       >
-        <FormField
+        <FormInput control={control} name="name" label="Name" />
+        <FormCombobox
           control={control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          name="subSubCategoryId"
+          formLabel="Sub sub category"
+          items={transformedSubSubCategoriess ?? []}
+          isLoading={isSubSubCategoriesPending}
+          manualSearch
+          selectItemMsg="Select a sub sub category"
+          onSearchChange={setSubSubCategorySearch}
         />
-        <FormField
-          control={control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <div className="flex grow items-center gap-2">
-                <Select
-                  disabled={isCategoriesPending}
-                  onValueChange={(value) => field.onChange(Number(value))}
-                  value={field.value > 0 ? field.value.toString() : ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories?.map((category) => (
-                      <SelectItem
-                        key={category.id}
-                        value={category.id.toString()}
-                      >
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isPending && <Loader2 size={36} className="animate-spin" />}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
+        <FormInput
           control={control}
           name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          type="textarea"
+          label="Description"
         />
         <div className="flex gap-5">
-          <FormField
+          <FormInput
             control={control}
             name="price"
-            render={({ field }) => (
-              <FormItem className="grow">
-                <FormLabel>Price</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="number"
+            label="Price"
+            className="grow"
           />
-          <FormField
+          <FormInput
             control={control}
             name="stock"
-            render={({ field }) => (
-              <FormItem className="grow">
-                <FormLabel>Stock</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="number"
+            label="Stock"
+            className="grow"
           />
         </div>
         <Button
@@ -183,7 +122,7 @@ function ProductCreation() {
           disabled={isPending}
           className="flex items-center gap-2"
         >
-          <span>Submit</span>{" "}
+          <span>Submit</span>
           {isPending && <Loader2 size={36} className="animate-spin" />}
         </Button>
       </form>
