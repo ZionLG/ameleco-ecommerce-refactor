@@ -16,7 +16,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { stock, name, price } = product;
   return (
     <Link
-      href={`/shop/${encodeURIComponent(name)}`}
+      href={`/${encodeURIComponent(name)}`}
       className="w-fit justify-self-center"
       scroll={true}
     >

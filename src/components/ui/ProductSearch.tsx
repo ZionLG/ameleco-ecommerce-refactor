@@ -22,7 +22,7 @@ function ProductSearch<TProduct>({
   const handleOnSelect = useCallback(
     (itemName: string) => {
       setSearchTerm("");
-      void router.push(`/shop/${encodeURIComponent(itemName)}`);
+      void router.push(`/${encodeURIComponent(itemName)}`);
     },
     [setSearchTerm, router],
   );

@@ -89,7 +89,7 @@ export default function RoutePathBreadcrumbs({
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/shop/${encodeURIComponent(productName)}`}>
+                <Link href={`/${encodeURIComponent(productName)}`}>
                   {productName}
                 </Link>
               </BreadcrumbLink>

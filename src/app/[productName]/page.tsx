@@ -14,8 +14,8 @@ import Stock from "~/components/Stock";
 import AddToCart from "./_components/AddToCart";
 import { auth } from "~/server/auth";
 
-async function ProductPage({ params }: { params: Promise<{ name: string }> }) {
-  const { name: paramName } = await params;
+async function ProductPage({ params }: { params: Promise<{ productName: string }> }) {
+  const { productName: paramName } = await params;
 
   const product = await api.products.getProduct({
     name: decodeURIComponent(paramName),
