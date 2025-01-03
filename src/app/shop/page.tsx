@@ -1,29 +1,31 @@
-import React, { Suspense } from "react";
+import React from "react";
 import Image from "next/image";
-import RoutePathBreadcrumbs from "./_components/RoutePathBreadcrumbs";
 import { api, HydrateClient } from "~/trpc/server";
 import CategoriesSidebar from "./_components/CategoriesSidebar";
 import CategoriesBottombar from "./_components/CategoriesBottombar";
 import Products from "./_components/Products";
+import RoutePathBreadcrumbs from "~/components/RoutePathBreadcrumbs";
 
 async function Shop({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  const searchParamsData = await searchParams;
+  const { category, q } = await searchParams;
+  const decodedCategory = category && decodeURIComponent(category);
+
   const filter = [
-    searchParamsData.category && {
+    decodedCategory && {
       id: "categoryName" as const,
-      value: [decodeURIComponent(searchParamsData.category)],
+      value: [decodedCategory],
     },
-    searchParamsData.q && {
+    q && {
       id: "name" as const,
-      value: decodeURIComponent(searchParamsData.q),
+      value: decodeURIComponent(q),
     },
   ].filter((filter) => !!filter);
 
-  void api.categories.getCategoriesCursor.prefetch({ limit: 10 });
+  void api.categories.getCategoriesCursor.prefetchInfinite({ limit: 10 });
   void api.products.getProducts.prefetch({
     limit: 20,
     offset: 0,
@@ -49,9 +51,9 @@ async function Shop({
             height={500}
           />
         </div>
-        <Suspense fallback={<></>}>
-          <RoutePathBreadcrumbs />
-        </Suspense>
+        <RoutePathBreadcrumbs
+          category={decodedCategory}
+        />
         <div className="flex flex-col lg:flex-row lg:gap-5">
           <div className="rounded-md bg-secondary lg:invisible lg:hidden">
             <CategoriesBottombar />
