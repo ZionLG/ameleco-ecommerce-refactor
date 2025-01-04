@@ -146,6 +146,35 @@ export const productsRelations = relations(products, ({ one }) => ({
   }),
 }));
 
+export const Cart = createTable("cart", {
+  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  userId: text("user_id", { length: 255 }).notNull(),
+  createdAt: int("created_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+  updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+})
+
+export const CartItem = createTable(
+  "cart_item",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    name: text("name", { length: 64 }).notNull(),
+    cartId: int("cart_id", { mode: "number" })
+      .notNull()
+      .references(() => subSubCategories.id, { onDelete: "cascade" }),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+    updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (cartItem) => [
+    uniqueIndex("cart_item_id_idx").on(cartItem.id),
+  ],
+);
+
 export const posts = createTable(
   "post",
   {
