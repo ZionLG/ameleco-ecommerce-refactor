@@ -11,6 +11,7 @@ import { PrettySeparator } from "~/components/ui/PrettySeparator";
 import ProductSearch from "~/components/ui/ProductSearch";
 import Sidebar from "~/components/Sidebar";
 import { api, HydrateClient } from "~/trpc/server";
+import HeaderCart from "./HeaderCart";
 
 const MENU_LIST = [
   { text: "Home", href: "/" },
@@ -22,6 +23,10 @@ const MENU_LIST = [
 
 async function Header() {
   const session = await auth();
+
+  if(session) {
+    void api.cart.getCart.prefetch();
+  }
 
   return (
     <header className="sticky top-0 z-50 flex flex-col gap-3 bg-background px-5 pt-5">
@@ -71,7 +76,7 @@ async function Header() {
 
         <div className="flex justify-end gap-2">
           <HeaderAuth user={session?.user} />
-          {/* {user && <DynamicHeaderCart />} */}
+          {session && <HeaderCart />}
         </div>
       </nav>
       <PrettySeparator gradient />

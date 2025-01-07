@@ -99,13 +99,36 @@ export const cartRouter = createTRPCRouter({
     const cartId = session.user.cartId;
 
     if (!cartId) {
-      return null;
+      const newCart = await createUserCart({
+        ctxDB: db,
+        userId: session.user.id,
+      });
+
+      return {
+        ...newCart,
+        cartItems: [],
+      };
     }
 
-    return await fetchUserCart({
-      cartId,
-      ctxDB: db,
+    const cart = await db.query.cart.findFirst({
+      where: (cart, { eq }) => eq(cart.id, cartId),
+      with: {
+        cartItems: {
+          columns: {
+            cartId: false,
+          },
+        },
+      },
     });
+
+    if (!cart) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Cart not found despite user having an assigned cart, please contact support.",
+      });
+    }
+
+    return cart;
   }),
   addToCart: protectedProcedure
     .input(

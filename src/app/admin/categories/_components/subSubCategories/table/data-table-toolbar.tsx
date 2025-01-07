@@ -3,9 +3,10 @@
 import type { Table } from "@tanstack/react-table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Loader2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { type getSubSubCategorySchema } from "./schema";
 import { type ChangeEvent, useCallback } from "react";
+import Loader from "~/components/Loader";
 
 export interface DataTableToolbarProps {
   table: Table<getSubSubCategorySchema>;
@@ -51,11 +52,7 @@ export function DataTableToolbar({ table, isLoading }: DataTableToolbarProps) {
           </Button>
         )}
       </div>
-      {isLoading && (
-        <div className="ml-auto flex items-center gap-5">
-          <Loader2 size={32} className="animate-spin" />
-        </div>
-      )}
+      {isLoading && <Loader />}
     </div>
   );
 }
