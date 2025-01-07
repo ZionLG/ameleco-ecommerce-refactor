@@ -8,7 +8,10 @@ import {
   publicProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
-import { products, productsInsertSchema } from "~/server/db/schema";
+import {
+  products,
+  productsInsertSchema,
+} from "~/server/db/schema";
 
 const createProductSchema = productsInsertSchema.pick({
   name: true,

@@ -61,13 +61,16 @@ export const subCategories = createTable(
   ],
 );
 
-export const subCategoriesRelations = relations(subCategories, ({ many, one }) => ({
-  subSubCategories: many(subSubCategories),
-  category: one(categories, {
-    fields: [subCategories.categoryId],
-    references: [categories.id],
+export const subCategoriesRelations = relations(
+  subCategories,
+  ({ many, one }) => ({
+    subSubCategories: many(subSubCategories),
+    category: one(categories, {
+      fields: [subCategories.categoryId],
+      references: [categories.id],
+    }),
   }),
-}));
+);
 
 export const subCategoryInsertSchema = createInsertSchema(subCategories, {
   name: (schema) => schema.min(3),
@@ -119,7 +122,7 @@ export const products = createTable(
       .references(() => subSubCategories.id, { onDelete: "cascade" }),
     createdById: text("created_by", { length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     createdAt: int("created_at", { mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),
@@ -144,25 +147,37 @@ export const productsRelations = relations(products, ({ one }) => ({
     fields: [products.subSubCategoryId],
     references: [subSubCategories.id],
   }),
+  createdBy: one(users, {
+    fields: [products.createdById],
+    references: [users.id],
+  }),
 }));
 
-export const Cart = createTable("cart", {
+export const cart = createTable("cart", {
   id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  userId: text("user_id", { length: 255 }).notNull(),
   createdAt: int("created_at", { mode: "timestamp" })
     .default(sql`(unixepoch())`)
     .notNull(),
-  updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
-})
+  updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(
+    () => new Date(),
+  ),
+});
 
-export const CartItem = createTable(
+export const cartRelations = relations(cart, ({ many }) => ({
+  cartItems: many(cartItem),
+}));
+
+export const cartItem = createTable(
   "cart_item",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 64 }).notNull(),
     cartId: int("cart_id", { mode: "number" })
       .notNull()
-      .references(() => subSubCategories.id, { onDelete: "cascade" }),
+      .references(() => cart.id, { onDelete: "cascade" }),
+    productId: int("product_id", { mode: "number" })
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    quantity: int("quantity", { mode: "number" }).notNull(),
     createdAt: int("created_at", { mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),
@@ -170,31 +185,19 @@ export const CartItem = createTable(
       () => new Date(),
     ),
   },
-  (cartItem) => [
-    uniqueIndex("cart_item_id_idx").on(cartItem.id),
-  ],
+  (cartItem) => [uniqueIndex("cart_item_id_idx").on(cartItem.id)],
 );
 
-export const posts = createTable(
-  "post",
-  {
-    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }),
-    createdById: text("created_by", { length: 255 })
-      .notNull()
-      .references(() => users.id),
-    createdAt: int("created_at", { mode: "timestamp" })
-      .default(sql`(unixepoch())`)
-      .notNull(),
-    updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (example) => [
-    index("created_by_idx").on(example.createdById),
-    index("name_idx").on(example.name),
-  ],
-);
+export const cartItemRelations = relations(cartItem, ({ one }) => ({
+  cart: one(cart, {
+    fields: [cartItem.cartId],
+    references: [cart.id],
+  }),
+  product: one(products, {
+    fields: [cartItem.productId],
+    references: [products.id],
+  }),
+}));
 
 export const users = createTable(
   "user",
@@ -206,6 +209,7 @@ export const users = createTable(
     role: text({ enum: ["admin", "user"] })
       .notNull()
       .default("user"),
+    cartId: int("cart_id", { mode: "number" }).references(() => cart.id),
     name: text("name", { length: 255 }),
     email: text("email", { length: 255 }).unique().notNull(),
     emailVerified: int("email_verified", {
@@ -219,8 +223,9 @@ export const users = createTable(
   ],
 );
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
+  cart: one(cart, { fields: [users.cartId], references: [cart.id] }),
 }));
 
 export const accounts = createTable(
