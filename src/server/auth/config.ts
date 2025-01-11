@@ -1,6 +1,6 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google"
+import Google from "next-auth/providers/google";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
@@ -10,7 +10,6 @@ import {
   users,
   verificationTokens,
 } from "~/server/db/schema";
-
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -42,7 +41,7 @@ export const authConfig = {
   providers: [
     Google({
       clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
     /**
      * ...add more providers here.
@@ -69,5 +68,9 @@ export const authConfig = {
         role: user.role,
       },
     }),
+  },
+  pages: {
+    signIn: "/login",
+    newUser: "/profile",
   },
 } satisfies NextAuthConfig;

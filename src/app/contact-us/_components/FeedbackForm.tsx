@@ -131,7 +131,7 @@ export function FeedbackForm() {
           </div>
         </div>
 
-        <Button type="submit" variant={"ringHover"}>
+        <Button type="submit" variant={"ringHover"} disabled>
           Submit
         </Button>
       </form>

@@ -218,6 +218,7 @@ export const users = createTable(
     image: text("image", { length: 255 }),
   },
   (user) => [
+    index("user_id_idx").on(user.id),
     index("user_name_idx").on(user.name),
     index("user_email_idx").on(user.email),
   ],

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -69,14 +69,16 @@ async function createUserCart({
 }) {
   return await ctxDB.transaction(async (tx) => {
     const [newCart] = await tx.insert(cart).values({}).returning();
+
     if (!newCart) {
+      tx.rollback();
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "An unexpected error occurred.",
       });
     }
 
-    await ctxDB
+    await tx
       .update(users)
       .set({ cartId: newCart.id })
       .where(eq(users.id, userId));
@@ -85,14 +87,10 @@ async function createUserCart({
   });
 }
 
-function assertStock({ stock, quantity }: { stock: number; quantity: number }) {
-  if (stock < quantity) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Quantity is greater than stock.",
-    });
-  }
-}
+const quantityError = new TRPCError({
+  code: "BAD_REQUEST",
+  message: "Quantity is greater than stock.",
+});
 
 export const cartRouter = createTRPCRouter({
   getCart: protectedProcedure.query(async ({ ctx: { db, session } }) => {
@@ -117,6 +115,16 @@ export const cartRouter = createTRPCRouter({
           columns: {
             cartId: false,
           },
+          with: {
+            product: {
+              columns: {
+                stock: true,
+                price: true,
+                id: true,
+                name: true,
+              },
+            },
+          },
         },
       },
     });
@@ -124,12 +132,29 @@ export const cartRouter = createTRPCRouter({
     if (!cart) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Cart not found despite user having an assigned cart, please contact support.",
+        message:
+          "Cart not found despite user having an assigned cart, please contact support.",
       });
     }
 
     return cart;
   }),
+  removeFromCart: protectedProcedure
+    .input(z.object({ cartItemId: z.number() }))
+    .mutation(async ({ ctx: { db, session }, input: { cartItemId } }) => {
+      const cartId = session.user.cartId;
+
+      if (!cartId) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "User does not have a cart assigned.",
+        });
+      }
+
+      return await db
+        .delete(cartItem)
+        .where(and(eq(cartItem.id, cartItemId), eq(cartItem.cartId, cartId)));
+    }),
   addToCart: protectedProcedure
     .input(
       z.object({
@@ -167,7 +192,10 @@ export const cartRouter = createTRPCRouter({
                 product: { stock },
                 id: cartItemId,
               } = productItem;
-              assertStock({ stock, quantity });
+
+              if (stock < quantity) {
+                throw quantityError;
+              }
 
               // Update the cart item with the new quantity
               await tx
@@ -183,7 +211,9 @@ export const cartRouter = createTRPCRouter({
                 productId,
               });
 
-              assertStock({ stock: product.stock, quantity });
+              if (product.stock < quantity) {
+                throw quantityError;
+              }
 
               await tx.insert(cartItem).values({
                 productId,
@@ -205,7 +235,10 @@ export const cartRouter = createTRPCRouter({
             productId,
           });
 
-          assertStock({ stock: product.stock, quantity });
+          if (product.stock < quantity) {
+            tx.rollback();
+            throw quantityError;
+          }
 
           await tx.insert(cartItem).values({
             productId,

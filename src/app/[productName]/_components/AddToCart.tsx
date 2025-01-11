@@ -1,13 +1,13 @@
 "use client";
 import React, { useCallback, useMemo } from "react";
-import { Button } from "~/components/ui/button";
-
+import { toast } from "sonner";
 import { z } from "zod";
-import { type RouterOutputs } from "~/trpc/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "~/components/ui/form";
 import FormInput from "~/components/form/FormInput";
+import { Button } from "~/components/ui/button";
+import { api, type RouterOutputs } from "~/trpc/react";
 
 const generateValidationSchema = (stock = 1) => {
   return z.object({
@@ -20,7 +20,7 @@ function AddToCart({
 }: {
   product: NonNullable<RouterOutputs["products"]["getProducts"][number]>;
 }) {
-  const { stock } = product;
+  const { stock, id } = product;
   const itemSchema = useMemo(() => generateValidationSchema(stock), [stock]);
 
   const form = useForm<z.infer<typeof itemSchema>>({
@@ -31,9 +31,21 @@ function AddToCart({
   });
   const { control, handleSubmit } = form;
 
-  const onSubmit = useCallback((values: z.infer<typeof itemSchema>) => {
-    console.log(values);
-  }, []);
+  const utils = api.useUtils();
+  const { mutate } = api.cart.addToCart.useMutation({
+    onSuccess: async () => {
+      await utils.cart.invalidate();
+      toast("Added to cart successfully");
+    }
+  });
+
+  const onSubmit = useCallback(
+    (values: z.infer<typeof itemSchema>) => {
+      toast("Adding to cart");
+      mutate({ productId: id, quantity: values.quantity });
+    },
+    [id, mutate],
+  );
 
   if (stock === 0) {
     return null;
