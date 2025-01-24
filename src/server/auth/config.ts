@@ -22,13 +22,11 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "admin" | "user";
-      cartId: number | null;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: "admin" | "user";
-    cartId: number | null;
   }
 }
 
@@ -71,6 +69,6 @@ export const authConfig = {
   },
   pages: {
     signIn: "/login",
-    newUser: "/profile",
+    newUser: "/new-user",
   },
 } satisfies NextAuthConfig;

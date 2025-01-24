@@ -14,7 +14,7 @@ async function Categories() {
 
   return (
     <HydrateClient>
-      <main className="flex flex-col justify-center gap-10 px-10 py-5">
+      <main className="flex flex-col justify-center gap-10 px-10 py-5 w-full">
         <Tabs defaultValue="categories">
           <TabsList className="grid w-[600px] grid-cols-3 lg:w-full">
             <TabsTrigger value="categories">Categories</TabsTrigger>

@@ -2,25 +2,29 @@ import React from "react";
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 import { api } from "~/trpc/server";
-import Cart from "./_components/cart";
+import ProfileForm from "~/components/profileForm";
 
-async function CartPage() {
+async function NewUserPage() {
   const session = await auth();
 
   if (!session) {
     redirect("/login");
   }
 
-  void api.cart.getCart.prefetch();
+  const profile = await api.user.getProfile();
+
+  if (profile) {
+    redirect("/");
+  }
 
   return (
-    <main className="flex flex-col gap-5 bg-secondary py-10 lg:px-16">
+    <main className="container flex flex-col gap-5 py-10 lg:px-16">
       <span className="text-center text-xl font-semibold lg:text-start">
-        My cart
+        Create your profile
       </span>
-      <Cart />
+      <ProfileForm />
     </main>
   );
 }
 
-export default CartPage;
+export default NewUserPage;

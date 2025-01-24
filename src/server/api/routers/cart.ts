@@ -1,20 +1,40 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import type { db } from "~/server/db";
-import { cartItem, cart, users } from "~/server/db/schema";
+import { db } from "~/server/db";
+import { cartItem, cart } from "~/server/db/schema";
 
-async function fetchUserCart({
-  ctxDB,
-  cartId,
-}: {
-  ctxDB: typeof db;
-  cartId: number;
-}) {
-  return await ctxDB.query.cart.findFirst({
-    where: (cart, { eq }) => eq(cart.id, cartId),
+const preparedUserCartWithFullItems= db.query.cart
+  .findFirst({
+    where: (cart, { eq }) => eq(cart.userId, sql.placeholder("userId")),
+    columns: {
+      id: true,
+    },
+    with: {
+      cartItems: {
+        columns: {
+          cartId: false,
+        },
+        with: {
+          product: {
+            columns: {
+              stock: true,
+              price: true,
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  })
+  .prepare();
+
+const preparedUserCartWithItemsStock = db.query.cart
+  .findFirst({
+    where: (cart, { eq }) => eq(cart.userId, sql.placeholder("userId")),
     columns: {
       id: true,
     },
@@ -33,22 +53,29 @@ async function fetchUserCart({
         },
       },
     },
-  });
-}
+  })
+  .prepare();
 
-async function fetchProductStock({
-  ctxDB,
-  productId,
-}: {
-  ctxDB: typeof db;
-  productId: number;
-}) {
-  const product = await ctxDB.query.products.findFirst({
-    where: (product, { eq }) => eq(product.id, productId),
+const preparedUserCart = db.query.cart
+  .findFirst({
+    where: (cart, { eq }) => eq(cart.userId, sql.placeholder("userId")),
+    columns: {
+      id: true,
+    },
+  })
+  .prepare();
+
+const preparedProductStock = db.query.products
+  .findFirst({
+    where: (product, { eq }) => eq(product.id, sql.placeholder("id")),
     columns: {
       stock: true,
     },
-  });
+  })
+  .prepare();
+
+async function fetchProductStock(productId: number) {
+  const product = await preparedProductStock.execute({ id: productId });
 
   if (!product) {
     throw new TRPCError({
@@ -68,7 +95,7 @@ async function createUserCart({
   userId: string;
 }) {
   return await ctxDB.transaction(async (tx) => {
-    const [newCart] = await tx.insert(cart).values({}).returning();
+    const [newCart] = await tx.insert(cart).values({ userId }).returning();
 
     if (!newCart) {
       tx.rollback();
@@ -77,11 +104,6 @@ async function createUserCart({
         message: "An unexpected error occurred.",
       });
     }
-
-    await tx
-      .update(users)
-      .set({ cartId: newCart.id })
-      .where(eq(users.id, userId));
 
     return newCart;
   });
@@ -94,9 +116,11 @@ const quantityError = new TRPCError({
 
 export const cartRouter = createTRPCRouter({
   getCart: protectedProcedure.query(async ({ ctx: { db, session } }) => {
-    const cartId = session.user.cartId;
+    const cart = await preparedUserCartWithFullItems.execute({
+      userId: session.user.id,
+    });
 
-    if (!cartId) {
+    if (!cart) {
       const newCart = await createUserCart({
         ctxDB: db,
         userId: session.user.id,
@@ -108,52 +132,27 @@ export const cartRouter = createTRPCRouter({
       };
     }
 
-    const cart = await db.query.cart.findFirst({
-      where: (cart, { eq }) => eq(cart.id, cartId),
-      with: {
-        cartItems: {
-          columns: {
-            cartId: false,
-          },
-          with: {
-            product: {
-              columns: {
-                stock: true,
-                price: true,
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!cart) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message:
-          "Cart not found despite user having an assigned cart, please contact support.",
-      });
-    }
-
     return cart;
   }),
   removeFromCart: protectedProcedure
     .input(z.object({ cartItemId: z.number() }))
     .mutation(async ({ ctx: { db, session }, input: { cartItemId } }) => {
-      const cartId = session.user.cartId;
+      const userCart = await preparedUserCart.execute({
+        userId: session.user.id,
+      });
 
-      if (!cartId) {
+      if (!userCart) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "User does not have a cart assigned.",
+          message: "User does not have a cart.",
         });
       }
 
       return await db
         .delete(cartItem)
-        .where(and(eq(cartItem.id, cartItemId), eq(cartItem.cartId, cartId)));
+        .where(
+          and(eq(cartItem.id, cartItemId), eq(cartItem.cartId, userCart.id)),
+        );
     }),
   addToCart: protectedProcedure
     .input(
@@ -164,24 +163,12 @@ export const cartRouter = createTRPCRouter({
     )
     .mutation(
       async ({ ctx: { db, session }, input: { productId, quantity } }) => {
-        const cartId = session.user.cartId;
+        const userCart = await preparedUserCartWithItemsStock.execute({
+          userId: session.user.id,
+        });
 
-        // Try to fetch the user's cart if cartId is defined
-        if (cartId) {
+        if (userCart) {
           return await db.transaction(async (tx) => {
-            const userCart = await fetchUserCart({
-              cartId,
-              ctxDB: db,
-            });
-
-            if (!userCart) {
-              throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message:
-                  "Cart not found despite user having an assigned cart, please contact support.",
-              });
-            }
-
             // Check if the product is already in the cart
             const productItem = userCart.cartItems.find(
               (cartItem) => cartItem.productId === productId,
@@ -206,10 +193,7 @@ export const cartRouter = createTRPCRouter({
                 .where(eq(cartItem.id, cartItemId));
             } else {
               // Create a new cart item
-              const product = await fetchProductStock({
-                ctxDB: db,
-                productId,
-              });
+              const product = await fetchProductStock(productId);
 
               if (product.stock < quantity) {
                 throw quantityError;
@@ -217,7 +201,7 @@ export const cartRouter = createTRPCRouter({
 
               await tx.insert(cartItem).values({
                 productId,
-                cartId,
+                cartId: userCart.id,
                 quantity,
               });
             }
@@ -230,10 +214,7 @@ export const cartRouter = createTRPCRouter({
             userId: session.user.id,
           });
 
-          const product = await fetchProductStock({
-            ctxDB: db,
-            productId,
-          });
+          const product = await fetchProductStock(productId);
 
           if (product.stock < quantity) {
             tx.rollback();

@@ -1,6 +1,11 @@
 "use client";
-import React, { useMemo } from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import React, { useEffect, useMemo } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/Separator";
 import {
@@ -12,9 +17,11 @@ import {
 } from "~/components/ui/table";
 import { api } from "~/trpc/react";
 import CartTableRow from "./CartTableRow";
+import { useRouter } from "next/navigation";
 
 function Cart() {
   const { data: cart } = api.cart.getCart.useQuery();
+  const router = useRouter();
 
   const total = useMemo(
     () =>
@@ -23,7 +30,13 @@ function Cart() {
       }, 0),
     [cart],
   );
-  
+
+  useEffect(() => {
+    if (cart?.cartItems.length === 0) {
+      router.push(`/shop`);
+    }
+  }, [cart, router]);
+
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start">
       <div className="grow bg-background p-5">
@@ -36,7 +49,7 @@ function Cart() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {cart?.cartItems.map(( {id,product,quantity}) => (
+            {cart?.cartItems.map(({ id, product, quantity }) => (
               <CartTableRow
                 cartItemId={id}
                 product={product}
@@ -64,11 +77,7 @@ function Cart() {
         <span className="mt-8 text-sm">
           Taxes and shipping calculated at checkout
         </span>
-        <Button
-          className="mt-5 w-full rounded-sm py-8"
-        >
-          Checkout
-        </Button>
+        <Button className="mt-5 w-full rounded-sm py-8">Checkout</Button>
       </div>
     </div>
   );

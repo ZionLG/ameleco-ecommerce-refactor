@@ -5,9 +5,9 @@ import ProductsTable from "./_components/table/productsTable";
 
 async function Products() {
   return (
-    <main className="flex flex-col justify-center items-center gap-10 px-10 py-5">
+    <main className="flex flex-col justify-center gap-10 px-10 py-5 w-full">
       <Tabs defaultValue="view">
-        <TabsList className="grid w-[400px]l grid-cols-2">
+        <TabsList className="grid grid-cols-2">
           <TabsTrigger value="view">View</TabsTrigger>
           <TabsTrigger value="create">Create</TabsTrigger>
         </TabsList>

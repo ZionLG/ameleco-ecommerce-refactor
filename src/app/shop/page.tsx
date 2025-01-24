@@ -5,12 +5,19 @@ import CategoriesSidebar from "./_components/CategoriesSidebar";
 import CategoriesBottombar from "./_components/CategoriesBottombar";
 import Products from "./_components/Products";
 import RoutePathBreadcrumbs from "~/components/RoutePathBreadcrumbs";
+import { redirect } from "next/navigation";
 
 async function Shop({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
+  const profile = await api.user.getProfile();
+
+  if (!profile) {
+    redirect("/new-user");
+  }
+
   const { category, q } = await searchParams;
   const decodedCategory = category && decodeURIComponent(category);
 
@@ -51,9 +58,7 @@ async function Shop({
             height={500}
           />
         </div>
-        <RoutePathBreadcrumbs
-          category={decodedCategory}
-        />
+        <RoutePathBreadcrumbs category={decodedCategory} />
         <div className="flex flex-col lg:flex-row lg:gap-5">
           <div className="rounded-md bg-secondary lg:invisible lg:hidden">
             <CategoriesBottombar />

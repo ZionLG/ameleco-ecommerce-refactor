@@ -142,7 +142,7 @@ export const productsInsertSchema = createInsertSchema(products, {
   price: (schema) => schema.positive(),
 });
 
-export const productsRelations = relations(products, ({ one }) => ({
+export const productsRelations = relations(products, ({ one, many }) => ({
   subSubCategory: one(subSubCategories, {
     fields: [products.subSubCategoryId],
     references: [subSubCategories.id],
@@ -151,6 +151,7 @@ export const productsRelations = relations(products, ({ one }) => ({
     fields: [products.createdById],
     references: [users.id],
   }),
+  cartItems: many(cartItem),
 }));
 
 export const cart = createTable("cart", {
@@ -161,10 +162,14 @@ export const cart = createTable("cart", {
   updatedAt: int("updatedAt", { mode: "timestamp" }).$onUpdate(
     () => new Date(),
   ),
+  userId: text("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 });
 
-export const cartRelations = relations(cart, ({ many }) => ({
+export const cartRelations = relations(cart, ({ many, one }) => ({
   cartItems: many(cartItem),
+  user: one(users, { fields: [cart.userId], references: [users.id] }),
 }));
 
 export const cartItem = createTable(
@@ -209,7 +214,6 @@ export const users = createTable(
     role: text({ enum: ["admin", "user"] })
       .notNull()
       .default("user"),
-    cartId: int("cart_id", { mode: "number" }).references(() => cart.id),
     name: text("name", { length: 255 }),
     email: text("email", { length: 255 }).unique().notNull(),
     emailVerified: int("email_verified", {
@@ -226,8 +230,32 @@ export const users = createTable(
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
-  cart: one(cart, { fields: [users.cartId], references: [cart.id] }),
+  cart: one(cart),
+  profile: one(profile),
 }));
+
+export const profile = createTable(
+  "profile",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    userId: text("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    firstName: text("first_name", { length: 255 }).notNull(),
+    lastName: text("last_name", { length: 255 }).notNull(),
+    company: text("company", { length: 255 }).notNull(),
+    phone: text("phone", { length: 255 }).notNull(),
+    address: text("address", { length: 255 }).notNull(),
+    group: text({ enum: ["homeOwner", "handyman", "electrician"] }).notNull(),
+  },
+  (profile) => [uniqueIndex("profile_user_id_idx").on(profile.userId)],
+);
+
+export const profileRelations = relations(profile, ({ one }) => ({
+  user: one(users, { fields: [profile.userId], references: [users.id] }),
+}));
+
+export const profileInsertSchema = createInsertSchema(profile);
 
 export const accounts = createTable(
   "account",

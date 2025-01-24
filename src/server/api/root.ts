@@ -4,11 +4,12 @@ import { subCategoriesRouter } from "~/server/api/routers/subCategories";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { subSubCategoriesRouter } from "./routers/subSubCategories";
 import { cartRouter } from "./routers/cart";
+import { userRouter } from "./routers/user";
 
 /**
  * This is the primary router for your server.
  *
- * All routers added in /api/routers should be manually added here.
+ * All routers added in /api/routers should be manually added here. 
  */
 export const appRouter = createTRPCRouter({
   categories: categoriesRouter,
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   subSubCategories: subSubCategoriesRouter,
   products: productsRouter,
   cart: cartRouter,
+  user: userRouter,
 });
 
 // export type definition of API
