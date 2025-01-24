@@ -2,6 +2,7 @@
 import type { Config } from "tailwindcss";
 import fluid, { extract, screens, fontSize } from 'fluid-tailwind'
 import tailwindcssAnimate  from 'tailwindcss-animate'
+import { withUt } from "uploadthing/tw";
 
 const config = {
   darkMode: ["class"],
@@ -99,4 +100,4 @@ const config = {
   plugins: [tailwindcssAnimate, fluid],
 } satisfies Config;
 
-export default config;
+export default withUt(config);

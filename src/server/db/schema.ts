@@ -109,6 +109,30 @@ export const subSubCategoryInsertSchema = createInsertSchema(subSubCategories, {
   name: (schema) => schema.min(3),
 });
 
+export const productImage = createTable(
+  "product_image",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    productId: int("product_id", { mode: "number" })
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    url: text("url", { length: 255 }).notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+  },
+  (productImage) => [
+    index("product_image_product_id_idx").on(productImage.productId),
+  ],
+);
+
+export const productImageRelations = relations(productImage, ({ one }) => ({
+  product: one(products, {
+    fields: [productImage.productId],
+    references: [products.id],
+  }),
+}));
+
 export const products = createTable(
   "product",
   {
@@ -152,6 +176,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [users.id],
   }),
   cartItems: many(cartItem),
+  productImages: many(productImage),
 }));
 
 export const cart = createTable("cart", {

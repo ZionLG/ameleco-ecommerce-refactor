@@ -6,7 +6,7 @@ import { auth } from "~/server/auth";
 const f = createUploadthing();
 
 // FileRouter for your app, can contain multiple FileRoutes
-export const ourFileRouter = {
+export const amelecoFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
   imageUploader: f({
     image: {
@@ -40,4 +40,4 @@ export const ourFileRouter = {
     }),
 } satisfies FileRouter;
 
-export type OurFileRouter = typeof ourFileRouter;
+export type AmelecoFileRouter = typeof amelecoFileRouter;
