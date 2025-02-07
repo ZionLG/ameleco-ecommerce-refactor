@@ -14,7 +14,17 @@ import Stock from "~/components/Stock";
 import AddToCart from "./_components/AddToCart";
 import { auth } from "~/server/auth";
 
-async function ProductPage({ params }: { params: Promise<{ productName: string }> }) {
+async function ProductPage({
+  params,
+}: {
+  params: Promise<{ productName: string }>;
+}) {
+  const profile = await api.user.getProfile();
+
+  if (!profile) {
+    redirect("/new-user");
+  }
+  
   const { productName: paramName } = await params;
 
   const product = await api.products.getProduct({
@@ -73,7 +83,11 @@ async function ProductPage({ params }: { params: Promise<{ productName: string }
           Price: ${price}
         </span>
         <Stock stock={stock} />
-        {session ? <AddToCart product={product} /> : <span>Log in to add to cart</span>}
+        {session ? (
+          <AddToCart product={product} />
+        ) : (
+          <span>Log in to add to cart</span>
+        )}
       </StickyProduct>
 
       <MobileProductWrapper>
@@ -91,7 +105,11 @@ async function ProductPage({ params }: { params: Promise<{ productName: string }
             Price: ${price}
           </span>
           <Stock stock={stock} />
-          {session ? <AddToCart product={product} /> : <span>Log in to add to cart</span>}
+          {session ? (
+            <AddToCart product={product} />
+          ) : (
+            <span>Log in to add to cart</span>
+          )}
         </MobileProductSection>
         <MobileProductSection section="lower"></MobileProductSection>
       </MobileProductWrapper>

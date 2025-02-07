@@ -22,7 +22,7 @@ async function NewUserPage() {
       <span className="text-center text-xl font-semibold lg:text-start">
         Create your profile
       </span>
-      <ProfileForm />
+      <ProfileForm action="create"/>
     </main>
   );
 }

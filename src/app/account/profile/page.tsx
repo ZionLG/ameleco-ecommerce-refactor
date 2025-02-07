@@ -10,7 +10,7 @@ async function ProfilePage() {
       <span className="text-center text-xl font-semibold lg:text-start">
         My Profile
       </span>
-      <ProfileForm profileData={profile} />
+      <ProfileForm profileData={profile} action="edit"/>
     </main>
   );
 }

@@ -35,7 +35,7 @@ function ProfileForm({
   action,
 }: {
   profileData?: ProfileSchema;
-  action?: "create" | "edit";
+  action: "create" | "edit";
 }) {
   const form = useForm<ProfileSchema>({
     defaultValues: {
