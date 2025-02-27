@@ -2,7 +2,6 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Dot } from "lucide-react";
 
 import type { RouterOutputs } from "~/trpc/react";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
@@ -13,29 +12,30 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { stock, name, price } = product;
+  const { stock, name, price, productImages } = product;
+
+  const frontImage = productImages[0]?.url ?? "https://placehold.co/250.png";
+
   return (
     <Link
       href={`/${encodeURIComponent(name)}`}
       className="w-fit justify-self-center"
     >
       <Card className="w-64">
-        <CardContent className="items-center gap-2 overflow-visible p-2">
+        <CardContent className="gap-2 flex flex-col overflow-visible p-2">
           <Image
             width={250}
             height={250}
             alt={name}
-            className="border-1 h-[140px] object-contain"
-            src={"https://placehold.co/250.png"}
+            className="border-1 object-contain rounded"
+            src={frontImage}
           />
           <b>{name}</b>
-        </CardContent>
-        <CardFooter className="text-small flex-col items-start p-5">
           <div className="flex">
             <span className="text-default-500 text-xl">${price}</span>
             <Stock stock={stock} />
           </div>
-        </CardFooter>
+        </CardContent>
       </Card>
     </Link>
   );

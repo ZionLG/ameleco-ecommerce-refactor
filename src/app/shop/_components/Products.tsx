@@ -27,7 +27,7 @@ function Products() {
   );
 
   return (
-    <div className="3xl:grid-cols-4 mt-10 grid h-fit grid-cols-1 justify-center gap-x-32 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+    <div className="3xl:grid-cols-4 grid h-fit grid-cols-1 justify-center gap-x-32 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
       {products?.map((product) => {
         if (
           !urlCategory ||

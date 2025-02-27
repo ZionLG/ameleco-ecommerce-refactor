@@ -45,3 +45,8 @@ export const categoryFilterSchema = z
     }),
   )
   .optional();
+
+export const fileSchema = z.object({
+  url: z.string(),
+  fileKey: z.string(),
+});

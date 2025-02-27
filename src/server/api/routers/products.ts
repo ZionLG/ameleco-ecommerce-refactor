@@ -1,7 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 import { z } from "zod";
-import { productFilterSchema, productSortSchema } from "~/lib/validators";
+import {
+  fileSchema,
+  productFilterSchema,
+  productSortSchema,
+} from "~/lib/validators";
 
 import {
   createTRPCRouter,
@@ -9,6 +13,8 @@ import {
   adminProcedure,
 } from "~/server/api/trpc";
 import {
+  productPdf,
+  productImage,
   products,
   productsInsertSchema,
 } from "~/server/db/schema";
@@ -32,6 +38,16 @@ export const productsRouter = createTRPCRouter({
       return await ctx.db.query.products.findFirst({
         where: (product, { eq }) => eq(product.name, name),
         with: {
+          productImages: {
+            columns: {
+              url: true,
+            },
+          },
+          productPdf: {
+            columns: {
+              url: true,
+            },
+          },
           subSubCategory: {
             with: {
               subCategory: {
@@ -75,6 +91,11 @@ export const productsRouter = createTRPCRouter({
         limit,
         offset,
         with: {
+          productImages: {
+            columns: {
+              url: true,
+            },
+          },
           subSubCategory: {
             with: {
               subCategory: {
@@ -101,12 +122,38 @@ export const productsRouter = createTRPCRouter({
       });
     }),
   create: adminProcedure
-    .input(createProductSchema)
-    .mutation(async ({ ctx, input }) => {
+    .input(
+      z.object({
+        productData: createProductSchema,
+        images: z.array(fileSchema),
+        pdfSpec: fileSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input: { images, pdfSpec, productData } }) => {
       try {
-        return await ctx.db.insert(products).values({
-          ...input,
-          createdById: ctx.session.user.id,
+        return await ctx.db.transaction(async (tx) => {
+          const [newProduct] = await tx
+            .insert(products)
+            .values({
+              ...productData,
+              createdById: ctx.session.user.id,
+            })
+            .returning();
+
+          if (!newProduct) {
+            tx.rollback();
+            return;
+          }
+
+          await tx
+            .insert(productPdf)
+            .values({ ...pdfSpec, productId: newProduct.id });
+
+          await tx
+            .insert(productImage)
+            .values(
+              images.map((image) => ({ ...image, productId: newProduct.id })),
+            );
         });
       } catch {
         throw new TRPCError({

@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, type InferSelectModel, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
-import { cartItem, cart } from "~/server/db/schema";
+import { cartItem, cart, products } from "~/server/db/schema";
 
-const preparedUserCartWithFullItems= db.query.cart
+const preparedUserCartWithFullItems = db.query.cart
   .findFirst({
     where: (cart, { eq }) => eq(cart.userId, sql.placeholder("userId")),
     columns: {
@@ -25,6 +25,9 @@ const preparedUserCartWithFullItems= db.query.cart
               id: true,
               name: true,
             },
+            // with: {
+            //   productPdf: true,
+            // }
           },
         },
       },
@@ -87,28 +90,6 @@ async function fetchProductStock(productId: number) {
   return product;
 }
 
-async function createUserCart({
-  ctxDB,
-  userId,
-}: {
-  ctxDB: typeof db;
-  userId: string;
-}) {
-  return await ctxDB.transaction(async (tx) => {
-    const [newCart] = await tx.insert(cart).values({ userId }).returning();
-
-    if (!newCart) {
-      tx.rollback();
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "An unexpected error occurred.",
-      });
-    }
-
-    return newCart;
-  });
-}
-
 const quantityError = new TRPCError({
   code: "BAD_REQUEST",
   message: "Quantity is greater than stock.",
@@ -116,23 +97,21 @@ const quantityError = new TRPCError({
 
 export const cartRouter = createTRPCRouter({
   getCart: protectedProcedure.query(async ({ ctx: { db, session } }) => {
-    const cart = await preparedUserCartWithFullItems.execute({
-      userId: session.user.id,
+    const userId = session.user.id;
+    const existingCart = await preparedUserCartWithFullItems.execute({
+      userId,
     });
-
-    if (!cart) {
-      const newCart = await createUserCart({
-        ctxDB: db,
-        userId: session.user.id,
-      });
+    
+    if (!existingCart) {
+      const [newCart] = await db.insert(cart).values({ userId }).returning();
 
       return {
-        ...newCart,
+        ...newCart!,
         cartItems: [],
-      };
+      } satisfies Awaited<ReturnType<typeof preparedUserCartWithFullItems.execute>>;
     }
 
-    return cart;
+    return existingCart;
   }),
   removeFromCart: protectedProcedure
     .input(z.object({ cartItemId: z.number() }))
@@ -209,10 +188,15 @@ export const cartRouter = createTRPCRouter({
         }
 
         return await db.transaction(async (tx) => {
-          const newCart = await createUserCart({
-            ctxDB: db,
-            userId: session.user.id,
-          });
+          const [newCart] = await tx
+            .insert(cart)
+            .values({ userId: session.user.id })
+            .returning();
+
+          if (!newCart) {
+            tx.rollback();
+            return;
+          }
 
           const product = await fetchProductStock(productId);
 

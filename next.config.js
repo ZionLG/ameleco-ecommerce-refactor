@@ -10,7 +10,12 @@ const config = {
     remotePatterns: [
       {
         hostname: "placehold.co"
-      }
+      },
+      {
+        protocol: "https",
+        hostname: "4opefmb4eg.ufs.sh",
+        pathname: "/f/*",
+      },
     ]
   }
 };

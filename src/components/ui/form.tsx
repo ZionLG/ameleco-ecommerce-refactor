@@ -152,7 +152,7 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>(
   ({ className, children, preserveSpace = false, ...props }, ref) => {
     const { error, formMessageId } = useFormField();
     const body = error ? String(error?.message) : children;
-
+    console.log(JSON.stringify(error))
     if (!body && !preserveSpace) {
       return null
     }

@@ -6,16 +6,19 @@ import CategoriesBottombar from "./_components/CategoriesBottombar";
 import Products from "./_components/Products";
 import RoutePathBreadcrumbs from "~/components/RoutePathBreadcrumbs";
 import { redirect } from "next/navigation";
+import { auth } from "~/server/auth";
 
 async function Shop({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  const profile = await api.user.getProfile();
+  const session = await auth();
 
-  if (!profile) {
-    redirect("/new-user");
+  if (session) {
+    if (!(await api.user.getProfile())) {
+      redirect("/new-user");
+    }
   }
 
   const { category, q } = await searchParams;

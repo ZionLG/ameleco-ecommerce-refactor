@@ -1,19 +1,30 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useController, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
-import { Form } from "~/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
-
-import { Loader2 } from "lucide-react";
 import FormInput from "~/components/form/FormInput";
 import { useDebounce } from "~/hooks/useDebounce";
 import FormCombobox from "~/components/form/FormCombobox";
+import PdfInput from "./PdfInput";
+import ImagesInput from "./ImagesInput";
+import ImagePreview from "./ImagePreview";
+import { fileSchema } from "~/lib/validators";
 
 const productSchema = z.object({
   name: z.string().min(3),
@@ -21,6 +32,10 @@ const productSchema = z.object({
   price: z.number().positive(),
   stock: z.number().nonnegative(),
   subSubCategoryId: z.string().min(1, "Category is required"),
+  pdfSpec: fileSchema.refine((value) => {
+    return value.url && value.fileKey;
+  }, "PDF Spec is required"),
+  images: z.array(fileSchema),
 });
 
 function ProductCreation() {
@@ -30,12 +45,26 @@ function ProductCreation() {
       name: "",
       description: "",
       subSubCategoryId: "",
+      pdfSpec: {
+        fileKey: "",
+        url: "",
+      },
+      images: [],
       price: 0,
       stock: 0,
     },
   });
 
-  const { handleSubmit, control, reset } = form;
+  const { handleSubmit, control, reset, watch } = form;
+
+  const images = watch("images");
+
+  const {
+    field: { onChange: onImagesChange },
+  } = useController({
+    name: "images",
+    control,
+  });
 
   const utils = api.useUtils();
 
@@ -61,9 +90,14 @@ function ProductCreation() {
 
   const onSubmit = useCallback(
     (values: z.infer<typeof productSchema>) => {
+      const { pdfSpec, images, ...productDaa } = values;
       mutate({
-        ...values,
-        subSubCategoryId: parseInt(values.subSubCategoryId),
+        productData: {
+          ...productDaa,
+          subSubCategoryId: parseInt(productDaa.subSubCategoryId),
+        },
+        pdfSpec,
+        images,
       });
     },
     [mutate],
@@ -117,6 +151,39 @@ function ProductCreation() {
             className="grow"
           />
         </div>
+        <div className="flex gap-5">
+          <FormField
+            control={form.control}
+            name="pdfSpec"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>PDF Spec</FormLabel>
+                <FormControl>
+                  <PdfInput {...field} />
+                </FormControl>
+                <FormDescription>Product PDF specification</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="images"
+            render={({ field }) => (
+              <FormItem className="grow">
+                <FormLabel>Images</FormLabel>
+                <FormControl>
+                  <ImagesInput {...field} />
+                </FormControl>
+                <FormDescription>Product Images</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        {!!images.length && (
+          <ImagePreview images={images} onChange={onImagesChange} />
+        )}
         <Button
           type="submit"
           disabled={isPending}

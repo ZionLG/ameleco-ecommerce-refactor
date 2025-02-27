@@ -9,10 +9,7 @@ import {
   MobileProductWrapper,
   MobileProductSection,
 } from "./_components/ProductLayout";
-import { Separator } from "~/components/ui/Separator";
-import Stock from "~/components/Stock";
-import AddToCart from "./_components/AddToCart";
-import { auth } from "~/server/auth";
+import ProductBasic from "./_components/ProductBasic";
 
 async function ProductPage({
   params,
@@ -24,7 +21,7 @@ async function ProductPage({
   if (!profile) {
     redirect("/new-user");
   }
-  
+
   const { productName: paramName } = await params;
 
   const product = await api.products.getProduct({
@@ -35,13 +32,11 @@ async function ProductPage({
     redirect("/shop");
   }
 
-  const session = await auth();
-
   const {
     name,
-    price,
-    stock,
     description,
+    productImages,
+    productPdf,
     subSubCategory: {
       name: subSubCategoryName,
       subCategory: {
@@ -66,28 +61,26 @@ async function ProductPage({
             width={500}
             height={500}
             alt={name}
-            src={"https://placehold.co/500.png"}
+            src={productImages[0]?.url ?? "https://placehold.co/500.png"}
           />
         </div>
         <div className="flex flex-col gap-5 rounded-sm bg-background p-10 shadow-md">
-          <span className="text-xl font-semibold">Description</span>
+          <div className="flex gap-2 items-center">
+            <span className="text-xl font-semibold">Description - </span>
+            <a
+              href={productPdf?.url}
+              target="_blank"
+              className="text-blue-500 underline"
+            >
+              PDF Spec
+            </a>
+          </div>
           <span className="text-2xl font-bold">{name}</span>
           <p>{description}</p>
         </div>
       </ProductMain>
       <StickyProduct>
-        <span className="text-2xl font-bold">{name}</span>
-        <span className="text-sm">{categoryName}</span>
-        <Separator className="my-2" />
-        <span className="flex min-w-fit items-center gap-2">
-          Price: ${price}
-        </span>
-        <Stock stock={stock} />
-        {session ? (
-          <AddToCart product={product} />
-        ) : (
-          <span>Log in to add to cart</span>
-        )}
+        <ProductBasic product={product} />
       </StickyProduct>
 
       <MobileProductWrapper>
@@ -96,22 +89,24 @@ async function ProductPage({
             width={500}
             height={500}
             alt={name}
-            src={"https://placehold.co/500.png"}
+            src={productImages[0]?.url ?? "https://placehold.co/500.png"}
           />
-          <span className="text-2xl font-bold">{name}</span>
-          <span className="text-sm">{categoryName}</span>
-          <Separator className="my-2" />
-          <span className="flex min-w-fit items-center gap-2">
-            Price: ${price}
-          </span>
-          <Stock stock={stock} />
-          {session ? (
-            <AddToCart product={product} />
-          ) : (
-            <span>Log in to add to cart</span>
-          )}
+          <ProductBasic product={product} />
         </MobileProductSection>
-        <MobileProductSection section="lower"></MobileProductSection>
+        <MobileProductSection section="lower">
+          <div className="flex gap-2 items-center">
+            <span className="text-xl font-semibold">Description - </span>
+            <a
+              href={productPdf?.url}
+              target="_blank"
+              className="text-blue-500 underline"
+            >
+              PDF Spec
+            </a>
+          </div>
+          <span className="text-2xl font-bold">{name}</span>
+          <p>{description}</p>
+        </MobileProductSection>
       </MobileProductWrapper>
     </ProductWrapper>
   );

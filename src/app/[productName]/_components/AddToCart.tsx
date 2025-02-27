@@ -18,7 +18,7 @@ const generateValidationSchema = (stock = 1) => {
 function AddToCart({
   product,
 }: {
-  product: NonNullable<RouterOutputs["products"]["getProducts"][number]>;
+  product: NonNullable<RouterOutputs["products"]["getProduct"]>;
 }) {
   const { stock, id } = product;
   const itemSchema = useMemo(() => generateValidationSchema(stock), [stock]);

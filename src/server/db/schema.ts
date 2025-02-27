@@ -109,6 +109,32 @@ export const subSubCategoryInsertSchema = createInsertSchema(subSubCategories, {
   name: (schema) => schema.min(3),
 });
 
+export const productPdf = createTable(
+  "product_pdf",
+  {
+    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    productId: int("product_id", { mode: "number" })
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    url: text("url", { length: 255 }).notNull(),
+    fileKey: text("file_key", { length: 255 }).notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+  },
+  (productPdf) => [
+    index("product_pdf_product_id_idx").on(productPdf.productId),
+  ],
+);
+
+export const productPdfRelations = relations(productPdf, ({ one }) => ({
+  product: one(products, {
+    fields: [productPdf.productId],
+    references: [products.id],
+  }),
+}));
+
+
 export const productImage = createTable(
   "product_image",
   {
@@ -117,6 +143,7 @@ export const productImage = createTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     url: text("url", { length: 255 }).notNull(),
+    fileKey: text("file_key", { length: 255 }).notNull(),
     createdAt: int("created_at", { mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),
@@ -146,7 +173,7 @@ export const products = createTable(
       .references(() => subSubCategories.id, { onDelete: "cascade" }),
     createdById: text("created_by", { length: 255 })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id),
     createdAt: int("created_at", { mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),
@@ -175,6 +202,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     fields: [products.createdById],
     references: [users.id],
   }),
+  productPdf: one(productPdf),
   cartItems: many(cartItem),
   productImages: many(productImage),
 }));

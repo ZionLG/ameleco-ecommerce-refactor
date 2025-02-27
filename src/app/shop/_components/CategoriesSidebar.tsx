@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { api } from "~/trpc/react";
@@ -8,6 +8,12 @@ import { cn } from "~/lib/utils";
 
 function CategoriesSidebar() {
   const searchParams = useSearchParams();
+  const [isClient, setIsClient] = useState(false)
+ 
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const {
     data: categories,
     fetchNextPage,
@@ -28,7 +34,7 @@ function CategoriesSidebar() {
   return (
     <div className="text-md invisible hidden w-[18rem] flex-col rounded-md bg-secondary p-5 lg:visible lg:flex">
       <span className="text-xl font-bold text-primary">Categories</span>
-      {transformedCategories?.map((category) => (
+      {isClient && transformedCategories?.map((category) => (
         <Link
           href={{
             pathname: "/shop",
