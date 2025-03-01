@@ -7,6 +7,7 @@ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
 import SuperJSON from "superjson";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { createTRPCContext } from '@trpc/tanstack-react-query';
 
 import { type AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
@@ -22,6 +23,8 @@ export const getQueryClient = () => {
 };
 
 export const api = createTRPCReact<AppRouter>();
+
+export const { TRPCProvider, useTRPC,useTRPCClient } = createTRPCContext<AppRouter>();
 
 /**
  * Inference helper for inputs.
@@ -63,10 +66,10 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <api.Provider client={trpcClient} queryClient={queryClient}>
+      <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         {props.children}
         <ReactQueryDevtools initialIsOpen={false} />
-      </api.Provider>
+      </TRPCProvider>
     </QueryClientProvider>
   );
 }
