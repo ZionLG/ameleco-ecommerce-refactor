@@ -10,7 +10,7 @@ function CartProduct({
   quantity,
   id,
 }: RouterOutputs["cart"]["getCart"]["cartItems"][number]) {
-  const { name, price, stock, id: productId } = product;
+  const { name, price, stock, id: productId,productImages } = product;
 
   return (
     <div className="flex gap-3">
@@ -19,8 +19,8 @@ function CartProduct({
         height={100}
         alt={name}
         className="rounded-lg"
-        src={"https://placehold.co/100.png"}
-      />
+        src={productImages[0]?.url ?? "https://placehold.co/100.png"}
+        />
       <div className="flex shrink flex-col gap-3 break-words">
         <Link
           href={`/${encodeURIComponent(name)}`}

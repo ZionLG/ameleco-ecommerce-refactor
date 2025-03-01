@@ -10,6 +10,7 @@ import {
   MobileProductSection,
 } from "./_components/ProductLayout";
 import ProductBasic from "./_components/ProductBasic";
+import ImageGallery from "./_components/ImageGallery";
 
 async function ProductPage({
   params,
@@ -57,12 +58,7 @@ async function ProductPage({
     >
       <ProductMain>
         <div className="rounded-sm bg-background p-10 shadow-md">
-          <Image
-            width={500}
-            height={500}
-            alt={name}
-            src={productImages[0]?.url ?? "https://placehold.co/500.png"}
-          />
+          <ImageGallery images={productImages} alt={name} />
         </div>
         <div className="flex flex-col gap-5 rounded-sm bg-background p-10 shadow-md">
           <div className="flex gap-2 items-center">

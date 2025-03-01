@@ -25,9 +25,9 @@ const preparedUserCartWithFullItems = db.query.cart
               id: true,
               name: true,
             },
-            // with: {
-            //   productPdf: true,
-            // }
+            with: {
+              productImages: true,
+            }
           },
         },
       },

@@ -14,15 +14,16 @@ interface CartTableRowProps {
   cartItemId: number;
 }
 const CartTableRow = ({ product, quantity, cartItemId }: CartTableRowProps) => {
-  const { id, name, price, stock } = product;
+  const { id, name, price, stock,productImages } = product;
   return (
     <TableRow>
       <TableCell className="flex gap-3 font-medium">
         <Image
           alt={name}
-          src="https://placehold.co/100.png"
+          src={productImages[0]?.url ?? "https://placehold.co/100.png"}
           width={100}
           height={100}
+          className="rounded-lg"
         />
         <div className="flex flex-col gap-5">
           <span className="font-semibold">{name}</span>
