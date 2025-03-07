@@ -5,10 +5,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Form } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import FormInput from "~/components/form/FormInput";
 
 const categorySchema = z.object({
@@ -25,17 +26,18 @@ function CategoryCreation() {
 
   const { handleSubmit, control, reset } = form;
 
-  const utils = api.useUtils();
-  const { mutate: createCategory } = api.categories.create.useMutation({
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { mutate: createCategory } = useMutation(trpc.categories.create.mutationOptions({
     onSuccess: async () => {
-      await utils.categories.invalidate();
+      await queryClient.invalidateQueries(trpc.categories.pathFilter());
       reset();
       toast.success("Category has been created.");
     },
     onError: (error) => {
       toast.error(error.message);
     },
-  });
+  }));
 
   const onSubmit = useCallback(
     (values: z.infer<typeof categorySchema>) => {

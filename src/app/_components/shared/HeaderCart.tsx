@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import {
@@ -9,7 +10,7 @@ import {
 } from "~/components/ui/popover";
 import { buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import Loader from "~/components/Loader";
 import { useToggle } from "~/hooks/useToggle";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -18,8 +19,9 @@ import CartProduct from "~/components/CartProduct";
 
 function HeaderCart() {
   const [isOpen, toggle, setIsOpen] = useToggle(false);
+  const trpc = useTRPC();
 
-  const { data: cart, isPending } = api.cart.getCart.useQuery();
+  const { data: cart, isPending } = useQuery(trpc.cart.getCart.queryOptions());
 
   const total = useMemo(
     () =>
@@ -34,7 +36,7 @@ function HeaderCart() {
       <PopoverTrigger>
         <ShoppingCart strokeWidth={1} size={36} />
       </PopoverTrigger>
-      <PopoverContent className="min-w-[28rem] w-fit">
+      <PopoverContent className="w-fit min-w-[28rem]">
         {isPending && <Loader />}
         {cart?.cartItems.length === 0 && (
           <div className="flex flex-col items-center justify-center pt-10">

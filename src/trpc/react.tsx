@@ -24,7 +24,7 @@ export const getQueryClient = () => {
 
 export const api = createTRPCReact<AppRouter>();
 
-export const { TRPCProvider, useTRPC,useTRPCClient } = createTRPCContext<AppRouter>();
+export const { TRPCProvider, useTRPC, useTRPCClient } = createTRPCContext<AppRouter>();
 
 /**
  * Inference helper for inputs.

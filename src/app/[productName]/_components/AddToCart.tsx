@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "~/components/ui/form";
 import FormInput from "~/components/form/FormInput";
 import { Button } from "~/components/ui/button";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { useTRPC, type RouterOutputs } from "~/trpc/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const generateValidationSchema = (stock = 1) => {
   return z.object({
@@ -21,6 +22,9 @@ function AddToCart({
   product: NonNullable<RouterOutputs["products"]["getProduct"]>;
 }) {
   const { stock, id } = product;
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const itemSchema = useMemo(() => generateValidationSchema(stock), [stock]);
 
   const form = useForm<z.infer<typeof itemSchema>>({
@@ -31,13 +35,14 @@ function AddToCart({
   });
   const { control, handleSubmit } = form;
 
-  const utils = api.useUtils();
-  const { mutate } = api.cart.addToCart.useMutation({
-    onSuccess: async () => {
-      await utils.cart.invalidate();
-      toast("Added to cart successfully");
-    }
-  });
+  const { mutate } = useMutation(
+    trpc.cart.addToCart.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.cart.getCart);
+        toast("Added to cart successfully");
+      },
+    }),
+  );
 
   const onSubmit = useCallback(
     (values: z.infer<typeof itemSchema>) => {
