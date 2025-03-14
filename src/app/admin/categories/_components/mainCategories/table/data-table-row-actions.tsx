@@ -9,28 +9,31 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { getCategorySchema } from "./schema";
-import { api } from "~/trpc/react";
 import { useCallback, useState } from "react";
 import AlertDialogWrapper from "~/components/AlertDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "~/trpc/react";
 
 interface DataTableRowActionsProps {
   row: Row<getCategorySchema>;
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const [alertDelete, setAlertDelete] = useState(false);
   const { mutate: deleteCategory, isPending: isDeletePending } =
-    api.categories.delete.useMutation({
+    useMutation(trpc.categories.delete.mutationOptions({
       onSuccess: async () => {
-        await utils.categories.invalidate();
+        await queryClient.invalidateQueries(trpc.categories.pathFilter());
         row.toggleSelected(false);
         toast.success("Category has been deleted.");
       },
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }));
 
   const handleOnDeleteClick = useCallback(() => {
     setAlertDelete(true);

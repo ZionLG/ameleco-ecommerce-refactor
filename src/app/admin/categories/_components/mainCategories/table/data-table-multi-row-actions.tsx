@@ -9,9 +9,10 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "~/trpc/react";
 
 import type { getCategorySchema } from "./schema";
-import { api } from "~/trpc/react";
 import AlertDialogWrapper from "~/components/AlertDialog";
 
 export interface DataTableMultiRowsActionsProps {
@@ -22,19 +23,23 @@ export function DataTableMultiRowsActions({
   table,
 }: DataTableMultiRowsActionsProps) {
   const [alertDelete, setAlertDelete] = useState(false);
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { rows } = table.getSelectedRowModel();
-  const { mutate: deleteCategories, isPending: isDeletePending } =
-    api.categories.delete.useMutation({
+
+  const { mutate: deleteCategories, isPending: isDeletePending } = useMutation(
+    trpc.categories.delete.mutationOptions({
       onSuccess: async () => {
-        await utils.categories.invalidate();
+        await queryClient.invalidateQueries(trpc.categories.pathFilter());
         table.toggleAllPageRowsSelected(false);
         toast.success("Categories have been deleted.");
       },
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }),
+  );
 
   const onDeleteAction = useCallback(() => {
     deleteCategories({

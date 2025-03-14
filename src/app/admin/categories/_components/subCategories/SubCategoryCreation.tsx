@@ -12,6 +12,8 @@ import { api } from "~/trpc/react";
 import FormInput from "~/components/form/FormInput";
 import FormCombobox from "~/components/form/FormCombobox";
 import { useDebounce } from "~/hooks/useDebounce";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "~/trpc/react";
 
 const subCategorySchema = z.object({
   name: z.string().min(1),
@@ -29,17 +31,19 @@ function SubCategoryCreation() {
 
   const { handleSubmit, control, reset } = form;
 
-  const utils = api.useUtils();
-  const { mutate: createCategory } = api.subCategories.create.useMutation({
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  
+  const { mutate: createCategory } = useMutation(trpc.subCategories.create.mutationOptions({
     onSuccess: async () => {
-      await utils.subCategories.invalidate();
+      await queryClient.invalidateQueries(trpc.subCategories.pathFilter());
       reset();
       toast.success("Sub category has been created.");
     },
     onError: (error) => {
       toast.error(error.message);
     },
-  });
+  }));
 
   const onSubmit = useCallback(
     (values: z.infer<typeof subCategorySchema>) => {

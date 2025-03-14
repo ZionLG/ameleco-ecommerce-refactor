@@ -38,7 +38,7 @@ function AddToCart({
   const { mutate } = useMutation(
     trpc.cart.addToCart.mutationOptions({
       onSuccess: async () => {
-        await queryClient.invalidateQueries(trpc.cart.getCart);
+        await queryClient.invalidateQueries(trpc.cart.getCart.queryFilter());
         toast("Added to cart successfully");
       },
     }),
