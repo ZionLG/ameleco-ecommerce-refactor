@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   Form,
@@ -25,6 +26,7 @@ import PdfInput from "./PdfInput";
 import ImagesInput from "./ImagesInput";
 import ImagePreview from "./ImagePreview";
 import { fileSchema } from "~/lib/validators";
+import { useTRPC } from "~/trpc/react";
 
 const productSchema = z.object({
   name: z.string().min(3),
@@ -66,7 +68,8 @@ function ProductCreation() {
     control,
   });
 
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const [subSubCategorySearch, setSubSubCategorySearch] = useState("");
 
@@ -77,16 +80,18 @@ function ProductCreation() {
       filter: [{ id: "name", value: subSubCategorySearchDebounce }],
     });
 
-  const { mutate, isPending } = api.products.create.useMutation({
-    onSuccess: async () => {
-      await utils.products.invalidate();
-      reset();
-      toast.success("Product has been created.");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const { mutate, isPending } = useMutation(
+    trpc.products.create.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.products.pathFilter());
+        reset();
+        toast.success("Product has been created.");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
 
   const onSubmit = useCallback(
     (values: z.infer<typeof productSchema>) => {

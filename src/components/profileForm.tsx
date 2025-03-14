@@ -3,12 +3,13 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import FormInput from "~/components/form/FormInput";
 import FormSelect from "~/components/form/FormSelect";
 import { Button } from "~/components/ui/button";
 import { Form } from "~/components/ui/form";
-import { api, type RouterInputs } from "~/trpc/react";
+import { useTRPC, type RouterInputs } from "~/trpc/react";
 
 type ProfileSchema = Required<RouterInputs["user"]["editProfile"]>;
 
@@ -52,11 +53,12 @@ function ProfileForm({
 
   const router = useRouter();
 
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const { mutate, isPending } = api.user.editProfile.useMutation({
+  const { mutate, isPending } = useMutation(trpc.user.editProfile.mutationOptions({
     onSuccess: async () => {
-      await utils.user.invalidate();
+      await queryClient.invalidateQueries(trpc.user.pathFilter());
       if (action === "create") {
         router.push("/shop");
       }
@@ -65,7 +67,7 @@ function ProfileForm({
     onError: (error) => {
       toast.error(error.message);
     },
-  });
+  }));
 
   const onSubmit = useCallback(
     (values: ProfileSchema) => {

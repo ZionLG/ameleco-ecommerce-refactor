@@ -1,11 +1,12 @@
 "use client";
 import React, { useCallback } from "react";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
 import { type ClientUploadedFileData } from "uploadthing/types";
 import type { AmelecoFileRouter } from "~/app/api/uploadthing/core";
 import { Button } from "~/components/ui/button";
 import { UploadDropzone } from "~/components/uploadthing";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 
 function PdfInput({
   value,
@@ -17,12 +18,15 @@ function PdfInput({
   const { fileKey, url } = value;
   const isFileUploaded = url && fileKey;
 
-  const { mutate: deleteFiles, isPending: isDeletingFiles } =
-    api.files.delete.useMutation({
+  const trpc = useTRPC();
+
+  const { mutate: deleteFiles, isPending: isDeletingFiles } = useMutation(
+    trpc.files.delete.mutationOptions({
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }),
+  );
 
   const handleDelete = useCallback(() => {
     if (!fileKey) return;

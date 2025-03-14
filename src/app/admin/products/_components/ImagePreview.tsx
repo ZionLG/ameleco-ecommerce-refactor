@@ -1,6 +1,9 @@
 "use client";
 import React, { useCallback } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+
 import { Button } from "~/components/ui/button";
 import {
   Carousel,
@@ -9,8 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "~/components/ui/carousel";
-import { toast } from "sonner";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 
 interface ImagePreviewProps {
   images: { url: string; fileKey: string }[];
@@ -18,12 +20,15 @@ interface ImagePreviewProps {
 }
 
 function ImagePreview({ images, onChange }: ImagePreviewProps) {
-  const { mutate: deleteFiles, isPending: isDeletingFiles } =
-    api.files.delete.useMutation({
+  const trpc = useTRPC();
+
+  const { mutate: deleteFiles, isPending: isDeletingFiles } = useMutation(
+    trpc.files.delete.mutationOptions({
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }),
+  );
 
   const handleDelete = useCallback(
     (fileKey: string) => {

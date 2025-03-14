@@ -1,6 +1,8 @@
 import type { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { getSubSubCategorySchema } from "./schema";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import { useCallback, useState } from "react";
 import AlertDialogWrapper from "~/components/AlertDialog";
 
@@ -18,19 +20,20 @@ interface DataTableRowActionsProps {
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [alertDelete, setAlertDelete] = useState(false);
   const { mutate: deleteSubSubCategory, isPending: isDeletePending } =
-    api.subSubCategories.delete.useMutation({
+    useMutation(trpc.subSubCategories.delete.mutationOptions({
       onSuccess: async () => {
-        await utils.subSubCategories.invalidate();
+        await queryClient.invalidateQueries(trpc.subSubCategories.pathFilter());
         row.toggleSelected(false);
         toast.success("Sub sub category has been deleted.");
       },
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }));
 
   const handleOnDeleteClick = useCallback(() => {
     setAlertDelete(true);

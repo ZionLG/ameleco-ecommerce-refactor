@@ -1,6 +1,8 @@
 import type { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { getProductSchema } from "./schema";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import { useCallback, useState } from "react";
 import AlertDialogWrapper from "~/components/AlertDialog";
 
@@ -18,19 +20,22 @@ interface DataTableRowActionsProps {
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
-  const utils = api.useUtils();
   const [alertDelete, setAlertDelete] = useState(false);
-  const { mutate: deleteProduct, isPending: isDeletePending } =
-    api.products.delete.useMutation({
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteProduct, isPending: isDeletePending } = useMutation(
+    trpc.products.delete.mutationOptions({
       onSuccess: async () => {
-        await utils.categories.invalidate();
+        await queryClient.invalidateQueries(trpc.products.pathFilter());
         row.toggleSelected(false);
         toast.success("Product has been deleted.");
       },
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }),
+  );
 
   const handleOnDeleteClick = useCallback(() => {
     setAlertDelete(true);
@@ -55,7 +60,10 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onClick={handleOnDeleteClick} disabled={isDeletePending}>
+          <DropdownMenuItem
+            onClick={handleOnDeleteClick}
+            disabled={isDeletePending}
+          >
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

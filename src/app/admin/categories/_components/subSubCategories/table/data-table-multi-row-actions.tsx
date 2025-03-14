@@ -9,9 +9,10 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { getSubSubCategorySchema } from "./schema";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import AlertDialogWrapper from "~/components/AlertDialog";
 
 export interface DataTableMultiRowsActionsProps {
@@ -22,19 +23,25 @@ export function DataTableMultiRowsActions({
   table,
 }: DataTableMultiRowsActionsProps) {
   const [alertDelete, setAlertDelete] = useState(false);
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { rows } = table.getSelectedRowModel();
+
   const { mutate: deleteSubSubCategories, isPending: isDeletePending } =
-    api.subSubCategories.delete.useMutation({
-      onSuccess: async () => {
-        await utils.subSubCategories.invalidate();
-        table.toggleAllPageRowsSelected(false);
-        toast.success("Sub sub categories have been deleted.");
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    });
+    useMutation(
+      trpc.subSubCategories.delete.mutationOptions({
+        onSuccess: async () => {
+          await queryClient.invalidateQueries(
+            trpc.subSubCategories.pathFilter(),
+          );
+          table.toggleAllPageRowsSelected(false);
+          toast.success("Sub sub categories have been deleted.");
+        },
+        onError: (error) => {
+          toast.error(error.message);
+        },
+      }),
+    );
 
   const onDeleteAction = useCallback(() => {
     deleteSubSubCategories({

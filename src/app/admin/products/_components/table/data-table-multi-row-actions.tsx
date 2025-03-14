@@ -1,5 +1,7 @@
 import type { Table } from "@tanstack/react-table";
 import { useCallback, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +13,7 @@ import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
 import type { getProductSchema } from "./schema";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import AlertDialogWrapper from "~/components/AlertDialog";
 
 export interface DataTableMultiRowsActionsProps {
@@ -22,19 +24,22 @@ export function DataTableMultiRowsActions({
   table,
 }: DataTableMultiRowsActionsProps) {
   const [alertDelete, setAlertDelete] = useState(false);
-  const utils = api.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { rows } = table.getSelectedRowModel();
-  const { mutate: deleteProducts, isPending: isDeletePending } =
-    api.products.delete.useMutation({
+
+  const { mutate: deleteProducts, isPending: isDeletePending } = useMutation(
+    trpc.products.delete.mutationOptions({
       onSuccess: async () => {
-        await utils.products.invalidate();
+        await queryClient.invalidateQueries(trpc.products.pathFilter());
         table.toggleAllPageRowsSelected(false);
         toast.success("Products have been deleted.");
       },
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }),
+  );
 
   const onDeleteAction = useCallback(() => {
     deleteProducts({

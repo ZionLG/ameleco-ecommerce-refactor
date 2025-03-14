@@ -5,12 +5,14 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { toast } from "sonner";
-import { api } from "~/trpc/react";
 import { Button } from "./ui/button";
 import { Trash } from "lucide-react";
 import { Input } from "./ui/input";
 import { cn } from "~/lib/utils";
+import { useTRPC } from "~/trpc/react";
 
 interface CartItemControlsProps {
   productId: number;
@@ -29,41 +31,50 @@ function CartItemControls({
 }: CartItemControlsProps) {
   const [localQuantity, setLocalQuantity] = useState(initialQuantity);
 
-  const utils = api.useUtils();
-  const { mutate: updateItem } = api.cart.addToCart.useMutation({
-    onSuccess: async () => {
-      await utils.cart.invalidate();
-      toast("Updated successfully");
-    },
-    onMutate: async (updatedItem) => {
-      toast("Updating cart...");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { mutate: updateItem } = useMutation(
+    trpc.cart.addToCart.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.cart.pathFilter());
 
-      // Cancel any outgoing refetches
-      // (so they don't overwrite our optimistic update)
-      await utils.cart.getCart.cancel();
+        toast("Updated successfully");
+      },
+      onMutate: async (updatedItem) => {
+        toast("Updating cart...");
 
-      // Snapshot the previous value
-      const previousCart = utils.cart.getCart.getData();
+        // Cancel any outgoing refetches
+        // (so they don't overwrite our optimistic update)
+        await queryClient.cancelQueries(trpc.cart.getCart.pathFilter());
 
-      const newItems = previousCart?.cartItems.map((item) => {
-        if (item.id === cartItemId) {
-          return { ...item, quantity: updatedItem.quantity };
-        }
-        return item;
-      });
+        // Snapshot the previous value
+        const previousCart = queryClient.getQueryData(
+          trpc.cart.getCart.queryKey(),
+        );
 
-      // Optimistically update to the new value
-      utils.cart.getCart.setData(undefined, (old) =>
-        old && newItems ? { ...old, cartItems: newItems } : old,
-      );
+        const newItems = previousCart?.cartItems.map((item) => {
+          if (item.id === cartItemId) {
+            return { ...item, quantity: updatedItem.quantity };
+          }
+          return item;
+        });
 
-      // Return a context object with the snapshotted value
-      return { previousCart };
-    },
-    onError: (_err, _newCart, context) => {
-      utils.cart.getCart.setData(undefined, context?.previousCart);
-    },
-  });
+        // Optimistically update to the new value
+        queryClient.setQueryData(trpc.cart.getCart.queryKey(), (old) =>
+          old && newItems ? { ...old, cartItems: newItems } : old,
+        );
+
+        // Return a context object with the snapshotted value
+        return { previousCart };
+      },
+      onError: (_err, _newCart, context) => {
+        queryClient.setQueryData(
+          trpc.cart.getCart.queryKey(),
+          context?.previousCart,
+        );
+      },
+    }),
+  );
 
   useEffect(() => {
     if (localQuantity === initialQuantity) return;
@@ -71,12 +82,15 @@ function CartItemControls({
     updateItem({ productId, quantity: localQuantity });
   }, [localQuantity, initialQuantity, productId, updateItem]);
 
-  const { mutate: removeItem } = api.cart.removeFromCart.useMutation({
-    onSuccess: async () => {
-      await utils.cart.invalidate();
-      toast("Removed successfully");
-    },
-  });
+  const { mutate: removeItem } = useMutation(
+    trpc.cart.removeFromCart.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.cart.pathFilter());
+
+        toast("Removed successfully");
+      },
+    }),
+  );
 
   const handleRemoveItem = useCallback(() => {
     removeItem({ cartItemId });
