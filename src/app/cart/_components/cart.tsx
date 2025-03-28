@@ -15,12 +15,14 @@ import {
   TableHead,
   TableBody,
 } from "~/components/ui/table";
-import { api } from "~/trpc/react";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "~/trpc/react";
 import CartTableRow from "./CartTableRow";
 import { useRouter } from "next/navigation";
 
 function Cart() {
-  const { data: cart } = api.cart.getCart.useQuery();
+  const trpc = useTRPC();
+  const { data: cart } = useQuery(trpc.cart.getCart.queryOptions());
   const router = useRouter();
 
   const total = useMemo(

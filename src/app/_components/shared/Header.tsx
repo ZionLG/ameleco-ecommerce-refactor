@@ -10,7 +10,7 @@ import { buttonVariants } from "~/components/ui/button";
 import { PrettySeparator } from "~/components/ui/PrettySeparator";
 import ProductSearch from "~/components/ui/ProductSearch";
 import Sidebar from "~/components/Sidebar";
-import { api, HydrateClient } from "~/trpc/server";
+import { prefetch, trpc, HydrateClient } from "~/trpc/server";
 import HeaderCart from "./HeaderCart";
 
 const MENU_LIST = [
@@ -25,7 +25,7 @@ async function Header() {
   const session = await auth();
 
   if (session) {
-    void api.cart.getCart.prefetch();
+    prefetch(trpc.cart.getCart.queryOptions());
   }
 
   return (
@@ -36,7 +36,7 @@ async function Header() {
             <TextEffect
               per="char"
               as="span"
-              className="font-bold uppercase italic text-[#0070C0] ~text-5xl/7xl"
+              className="font-bold uppercase italic text-[#0070C0] ~text-3xl/7xl"
               preset="slide"
             >
               AMELECO

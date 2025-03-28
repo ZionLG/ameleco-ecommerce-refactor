@@ -1,6 +1,6 @@
 'use client';
 import { motion, type TargetAndTransition, type Variants } from 'framer-motion';
-import React from 'react';
+import React, { type JSX } from 'react';
 
 type PresetType = 'blur' | 'shake' | 'scale' | 'fade' | 'slide';
 

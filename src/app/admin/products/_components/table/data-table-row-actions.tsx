@@ -1,5 +1,5 @@
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -14,6 +14,7 @@ import type { getProductSchema } from "./schema";
 import { useTRPC } from "~/trpc/react";
 import { useCallback, useState } from "react";
 import AlertDialogWrapper from "~/components/AlertDialog";
+import { useRouter } from "next/navigation";
 
 interface DataTableRowActionsProps {
   row: Row<getProductSchema>;
@@ -23,6 +24,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [alertDelete, setAlertDelete] = useState(false);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { mutate: deleteProduct, isPending: isDeletePending } = useMutation(
     trpc.products.delete.mutationOptions({
@@ -47,6 +49,10 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     });
   }, [deleteProduct, row]);
 
+  const handleEdit = useCallback(() => {
+    router.push(`/admin/products/edit/${row.original.id}`);
+  }, [router, row]);
+
   return (
     <>
       <DropdownMenu>
@@ -60,10 +66,16 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem onClick={handleEdit}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleOnDeleteClick}
             disabled={isDeletePending}
+            className="text-destructive"
           >
+            <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

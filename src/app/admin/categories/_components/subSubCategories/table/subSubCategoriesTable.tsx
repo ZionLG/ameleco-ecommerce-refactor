@@ -6,8 +6,9 @@ import {
   type SortingState,
   type PaginationState,
 } from "@tanstack/react-table";
+import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "~/components/generic-table/data-table";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import { columns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
 import SubSubCategoryCreation from "../SubSubCategoryCreation";
@@ -20,17 +21,20 @@ function CategoriesTable() {
   });
   const { pageIndex, pageSize } = pagination;
 
-  const { data, isPending } = api.subSubCategories.getSubSubCategories.useQuery(
-    {
-      limit: pageSize,
-      offset: pageSize * pageIndex,
-      includeCategory: true,
-      includeSubCategory: true,
-    },
-    {
-      placeholderData: (previous) => previous,
-      refetchOnWindowFocus: false,
-    },
+  const trpc = useTRPC();
+  const { data, isPending } = useQuery(
+    trpc.subSubCategories.getSubSubCategories.queryOptions(
+      {
+        limit: pageSize,
+        offset: pageSize * pageIndex,
+        includeCategory: true,
+        includeSubCategory: true,
+      },
+      {
+        placeholderData: (previous) => previous,
+        refetchOnWindowFocus: false,
+      },
+    ),
   );
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(

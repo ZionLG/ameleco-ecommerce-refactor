@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useController, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import {
   Form,
@@ -18,7 +19,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
 import FormInput from "~/components/form/FormInput";
 import { useDebounce } from "~/hooks/useDebounce";
 import FormCombobox from "~/components/form/FormCombobox";
@@ -40,7 +40,12 @@ const productSchema = z.object({
   images: z.array(fileSchema),
 });
 
-function ProductCreation() {
+interface ProductCreationProps {
+  productId?: number;
+}
+
+function ProductCreation({ productId }: ProductCreationProps) {
+  const router = useRouter();
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -57,7 +62,7 @@ function ProductCreation() {
     },
   });
 
-  const { handleSubmit, control, reset, watch } = form;
+  const { handleSubmit, control, reset, watch, setValue } = form;
 
   const images = watch("images");
 
@@ -76,16 +81,43 @@ function ProductCreation() {
   const subSubCategorySearchDebounce = useDebounce(subSubCategorySearch, 500);
 
   const { data: subSubCategories, isPending: isSubSubCategoriesPending } =
-    api.subSubCategories.getSubSubCategories.useQuery({
-      filter: [{ id: "name", value: subSubCategorySearchDebounce }],
-    });
+    useQuery(
+      trpc.subSubCategories.getSubSubCategories.queryOptions({
+        filter: [{ id: "name", value: subSubCategorySearchDebounce }],
+      }),
+    );
 
-  const { mutate, isPending } = useMutation(
+  const { data: product } = useQuery(
+    trpc.products.getProductById.queryOptions(
+      {
+        id: productId ?? 0,
+      },
+      {
+        enabled: !!productId,
+      },
+    ),
+  );
+
+  const { mutate: createProduct, isPending: isCreatePending } = useMutation(
     trpc.products.create.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(trpc.products.pathFilter());
         reset();
         toast.success("Product has been created.");
+        router.push("/admin/products");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
+  const { mutate: updateProduct, isPending: isUpdatePending } = useMutation(
+    trpc.products.update.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.products.pathFilter());
+        toast.success("Product has been updated.");
+        router.push("/admin/products");
       },
       onError: (error) => {
         toast.error(error.message);
@@ -95,17 +127,29 @@ function ProductCreation() {
 
   const onSubmit = useCallback(
     (values: z.infer<typeof productSchema>) => {
-      const { pdfSpec, images, ...productDaa } = values;
-      mutate({
-        productData: {
-          ...productDaa,
-          subSubCategoryId: parseInt(productDaa.subSubCategoryId),
-        },
-        pdfSpec,
-        images,
-      });
+      const { pdfSpec, images, ...productData } = values;
+      if (productId) {
+        updateProduct({
+          id: productId,
+          productData: {
+            ...productData,
+            subSubCategoryId: parseInt(productData.subSubCategoryId),
+          },
+          pdfSpec,
+          images,
+        });
+      } else {
+        createProduct({
+          productData: {
+            ...productData,
+            subSubCategoryId: parseInt(productData.subSubCategoryId),
+          },
+          pdfSpec,
+          images,
+        });
+      }
     },
-    [mutate],
+    [createProduct, updateProduct, productId],
   );
 
   const transformedSubSubCategoriess = useMemo(
@@ -116,6 +160,20 @@ function ProductCreation() {
       })),
     [subSubCategories],
   );
+
+  useEffect(() => {
+    if (product) {
+      setValue("name", product.name);
+      setValue("description", product.description ?? "");
+      setValue("subSubCategoryId", product.subSubCategoryId.toString());
+      setValue("price", product.price);
+      setValue("stock", product.stock);
+      if (product.productPdf) setValue("pdfSpec", product.productPdf);
+      setValue("images", product.productImages);
+    }
+  }, [product, setValue]);
+
+  const isPending = isCreatePending || isUpdatePending;
 
   return (
     <Form {...form}>
@@ -194,7 +252,7 @@ function ProductCreation() {
           disabled={isPending}
           className="flex items-center gap-2"
         >
-          <span>Submit</span>
+          <span>{productId ? "Update" : "Create"}</span>
           {isPending && <Loader2 size={36} className="animate-spin" />}
         </Button>
       </form>

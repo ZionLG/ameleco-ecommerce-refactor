@@ -1,7 +1,7 @@
 import React from "react";
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
-import { api } from "~/trpc/server";
+import { prefetch, trpc } from "~/trpc/server";
 import Cart from "./_components/cart";
 
 async function CartPage() {
@@ -11,7 +11,7 @@ async function CartPage() {
     redirect("/login");
   }
 
-  void api.cart.getCart.prefetch();
+  prefetch(trpc.cart.getCart.queryOptions());
 
   return (
     <main className="flex flex-col gap-5 bg-secondary py-10 lg:px-16">

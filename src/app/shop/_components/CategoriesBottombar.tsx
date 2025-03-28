@@ -2,7 +2,7 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { api } from "~/trpc/react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { ChevronDown } from "lucide-react";
@@ -14,17 +14,23 @@ import {
   SheetTitle,
 } from "~/components/ui/sheet";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { useTRPC } from "~/trpc/react";
 
 function CategoriesBottombar() {
   const searchParams = useSearchParams();
+  const trpc = useTRPC();
+
   const {
     data: categories,
     fetchNextPage,
     hasNextPage,
     status,
-  } = api.categories.getCategoriesCursor.useInfiniteQuery(
-    { limit: 10 },
-    { getNextPageParam: (lastPage) => lastPage.nextCursor },
+  } = useInfiniteQuery(
+    trpc.categories.getCategoriesCursor.infiniteQueryOptions({
+      limit: 10,
+    }, {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }),
   );
 
   const transformedCategories = useMemo(

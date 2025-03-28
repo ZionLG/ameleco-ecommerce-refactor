@@ -1,7 +1,7 @@
 import React from "react";
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
-import { api } from "~/trpc/server";
+import { caller } from "~/trpc/server";
 import ProfileForm from "~/components/profileForm";
 
 async function NewUserPage() {
@@ -11,9 +11,9 @@ async function NewUserPage() {
     redirect("/login");
   }
 
-  const profile = await api.user.getProfile();
+  const profile = await caller.user.getProfile();
 
-  if (profile) {
+  if (profile) { 
     redirect("/");
   }
 

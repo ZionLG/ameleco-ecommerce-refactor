@@ -1,9 +1,9 @@
 import React from "react";
 import ProfileForm from "~/components/profileForm";
-import { api } from "~/trpc/server";
+import { caller } from "~/trpc/server";
 
 async function ProfilePage() {
-  const profile = await api.user.getProfile();
+  const profile = await caller.user.getProfile();
 
   return (
     <main className="flex flex-col gap-5 py-10 lg:px-16">

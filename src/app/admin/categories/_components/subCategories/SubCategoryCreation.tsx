@@ -8,12 +8,11 @@ import { toast } from "sonner";
 
 import { Form } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "~/trpc/react";
 import FormInput from "~/components/form/FormInput";
 import FormCombobox from "~/components/form/FormCombobox";
 import { useDebounce } from "~/hooks/useDebounce";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "~/trpc/react";
 
 const subCategorySchema = z.object({
   name: z.string().min(1),
@@ -59,19 +58,20 @@ function SubCategoryCreation() {
 
   const categorySearchDebounce = useDebounce(categorySearch, 500);
 
-  const { data: categories, isPending: categoriesIsPending } =
-    api.categories.getCategories.useQuery({
+  const { data: categories, isPending: categoriesIsPending } = useQuery(
+    trpc.categories.getCategories.queryOptions({
       filter: [{ id: "name", value: categorySearchDebounce }],
-    });
+    }),
+  );
 
   const transformedCategories = useMemo(
-      () =>
-        categories?.map((category) => ({
-          label: category.name,
-          value: category.id,
-        })),
-      [categories],
-    );
+    () =>
+      categories?.map((category) => ({
+        label: category.name,
+        value: category.id,
+      })),
+    [categories],
+  );
     
   return (
     <Form {...form}>

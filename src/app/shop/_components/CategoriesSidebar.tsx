@@ -2,9 +2,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { api } from "~/trpc/react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { useTRPC } from "~/trpc/react";
 
 function CategoriesSidebar() {
   const searchParams = useSearchParams();
@@ -14,14 +15,19 @@ function CategoriesSidebar() {
     setIsClient(true)
   }, [])
 
+  const trpc = useTRPC();
+
   const {
     data: categories,
     fetchNextPage,
     hasNextPage,
     status,
-  } = api.categories.getCategoriesCursor.useInfiniteQuery(
-    { limit: 10 },
-    { getNextPageParam: (lastPage) => lastPage.nextCursor },
+  } = useInfiniteQuery(
+    trpc.categories.getCategoriesCursor.infiniteQueryOptions({
+      limit: 10,
+    }, {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }),
   );
 
   const transformedCategories = useMemo(

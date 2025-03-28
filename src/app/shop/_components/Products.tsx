@@ -1,7 +1,8 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import React from "react";
-import { api } from "~/trpc/react";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "~/trpc/react";
 import ProductCard from "./ProductCard";
 
 function Products() {
@@ -14,16 +15,19 @@ function Products() {
     },
   ].filter((filter) => !!filter);
 
-  const { data: products } = api.products.getProducts.useQuery(
-    {
-      limit: 50,
-      offset: 0,
-      filter: filter,
-    },
-    {
-      placeholderData: (previous) => previous,
-      refetchOnWindowFocus: false,
-    },
+  const trpc = useTRPC();
+  const { data: products } = useQuery(
+    trpc.products.getProducts.queryOptions(
+      {
+        limit: 50,
+        offset: 0,
+        filter: filter,
+      },
+      {
+        placeholderData: (previous) => previous,
+        refetchOnWindowFocus: false,
+      },
+    ),
   );
 
   return (

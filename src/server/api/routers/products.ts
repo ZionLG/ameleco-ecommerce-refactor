@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   fileSchema,
@@ -28,6 +28,36 @@ const createProductSchema = productsInsertSchema.pick({
 });
 
 export const productsRouter = createTRPCRouter({
+  getProductById: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input: { id }, ctx }) => {
+      return await ctx.db.query.products.findFirst({
+        where: (product, { eq }) => eq(product.id, id),
+        with: {
+          productImages: {
+            columns: {
+              url: true,
+              fileKey: true,
+            },
+          },
+          productPdf: {
+            columns: {
+              url: true,
+              fileKey: true,
+            },
+          },
+          subSubCategory: {
+            with: {
+              subCategory: {
+                with: {
+                  category: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }),
   getProduct: publicProcedure
     .input(
       z.object({
@@ -121,6 +151,55 @@ export const productsRouter = createTRPCRouter({
           ),
       });
     }),
+    
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          productData: createProductSchema,
+          images: z.array(fileSchema),
+          pdfSpec: fileSchema,
+        }),
+      )
+      .mutation(async ({ ctx, input: { images, pdfSpec, productData, id } }) => {
+        try {
+          return await ctx.db.transaction(async (tx) => {
+            const [updatedProduct] = await tx
+              .update(products)
+              .set(productData)
+              .where(eq(products.id, id))
+              .returning();
+
+            if (!updatedProduct) {
+              tx.rollback();
+              return;
+            }
+
+            await tx
+              .delete(productPdf)
+              .where(eq(productPdf.productId, id));
+
+            await tx
+              .insert(productPdf)
+              .values({ ...pdfSpec, productId: id });
+
+            await tx
+              .delete(productImage)
+              .where(eq(productImage.productId, id));
+
+            await tx
+              .insert(productImage)
+              .values(
+                images.map((image) => ({ ...image, productId: id })),
+              );
+          });
+        } catch {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "An unexpected error occurred.",
+          });
+        }
+      }),
   create: adminProcedure
     .input(
       z.object({

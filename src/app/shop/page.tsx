@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { api, HydrateClient } from "~/trpc/server";
+import { HydrateClient, prefetch, caller, trpc } from "~/trpc/server";
 import CategoriesSidebar from "./_components/CategoriesSidebar";
 import CategoriesBottombar from "./_components/CategoriesBottombar";
 import Products from "./_components/Products";
@@ -16,7 +16,7 @@ async function Shop({
   const session = await auth();
 
   if (session) {
-    if (!(await api.user.getProfile())) {
+    if (!(await caller.user.getProfile())) {
       redirect("/new-user");
     }
   }
@@ -35,12 +35,19 @@ async function Shop({
     },
   ].filter((filter) => !!filter);
 
-  void api.categories.getCategoriesCursor.prefetchInfinite({ limit: 10 });
-  void api.products.getProducts.prefetch({
-    limit: 20,
-    offset: 0,
-    filter: filter,
-  });
+  prefetch(
+    trpc.products.getProducts.queryOptions({
+      limit: 20,
+      offset: 0,
+      filter: filter,
+    }),
+  );
+
+  prefetch(
+    trpc.categories.getCategoriesCursor.queryOptions({
+      limit: 10,
+    }),
+  );
 
   return (
     <HydrateClient>

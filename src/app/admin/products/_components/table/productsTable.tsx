@@ -6,14 +6,13 @@ import {
   type SortingState,
   type PaginationState,
 } from "@tanstack/react-table";
+import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "~/components/generic-table/data-table";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import { columns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { DataTableMultiRowsActions } from "./data-table-multi-row-actions";
 import { productFilterSchema, productSortSchema } from "~/lib/validators";
-
-
 
 function ProductsTable() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -27,17 +26,20 @@ function ProductsTable() {
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const { data, isPending } = api.products.getProducts.useQuery(
-    {
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: productSortSchema.parse(sorting),
-      filter: productFilterSchema.parse(columnFilters),
-    },
-    {
-      placeholderData: (previous) => previous,
-      refetchOnWindowFocus: false,
-    },
+  const trpc = useTRPC();
+  const { data, isPending } = useQuery(
+    trpc.products.getProducts.queryOptions(
+      {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: productSortSchema.parse(sorting),
+        filter: productFilterSchema.parse(columnFilters),
+      },
+      {
+        placeholderData: (previous) => previous,
+        refetchOnWindowFocus: false,
+      },
+    ),
   );
 
   return (

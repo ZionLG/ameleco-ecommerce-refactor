@@ -1,7 +1,6 @@
 import React from "react";
 import { redirect } from "next/navigation";
-import Image from "next/image";
-import { api } from "~/trpc/server";
+import { caller } from "~/trpc/server";
 import {
   ProductWrapper,
   ProductMain,
@@ -17,7 +16,7 @@ async function ProductPage({
 }: {
   params: Promise<{ productName: string }>;
 }) {
-  const profile = await api.user.getProfile();
+  const profile = await caller.user.getProfile();
 
   if (!profile) {
     redirect("/new-user");
@@ -25,7 +24,7 @@ async function ProductPage({
 
   const { productName: paramName } = await params;
 
-  const product = await api.products.getProduct({
+  const product = await caller.products.getProduct({
     name: decodeURIComponent(paramName),
   });
 
@@ -61,7 +60,7 @@ async function ProductPage({
           <ImageGallery images={productImages} alt={name} />
         </div>
         <div className="flex flex-col gap-5 rounded-sm bg-background p-10 shadow-md">
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <span className="text-xl font-semibold">Description - </span>
             <a
               href={productPdf?.url}
@@ -81,16 +80,11 @@ async function ProductPage({
 
       <MobileProductWrapper>
         <MobileProductSection section="upper">
-          <Image
-            width={500}
-            height={500}
-            alt={name}
-            src={productImages[0]?.url ?? "https://placehold.co/500.png"}
-          />
+          <ImageGallery images={productImages} alt={name} />
           <ProductBasic product={product} />
         </MobileProductSection>
         <MobileProductSection section="lower">
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <span className="text-xl font-semibold">Description - </span>
             <a
               href={productPdf?.url}

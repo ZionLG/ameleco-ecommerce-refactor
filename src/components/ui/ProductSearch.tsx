@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 import { Input } from "~/components/ui/input";
-import { api } from "~/trpc/react";
 
 interface SearchProps<TProduct> {
   maxResults?: number;

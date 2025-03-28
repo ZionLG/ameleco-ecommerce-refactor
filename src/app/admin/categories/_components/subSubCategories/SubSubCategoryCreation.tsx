@@ -5,15 +5,14 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Form } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import FormInput from "~/components/form/FormInput";
 import FormCombobox from "~/components/form/FormCombobox";
 import { useDebounce } from "~/hooks/useDebounce";
-import { useTRPC } from "~/trpc/react";
 
 const subSubCategorySchema = z.object({
   name: z.string().min(1),
@@ -32,7 +31,9 @@ function SubCategoryCreation() {
   const { handleSubmit, control, reset } = form;
 
   const trpc = useTRPC();
-  const queryClient = useQueryClient();  const { mutate: createCategory } = useMutation(trpc.subSubCategories.create.mutationOptions({
+  const queryClient = useQueryClient();  
+  
+  const { mutate: createCategory } = useMutation(trpc.subSubCategories.create.mutationOptions({
     onSuccess: async () => {
       await queryClient.invalidateQueries(trpc.subSubCategories.pathFilter());
       reset();
@@ -57,10 +58,11 @@ function SubCategoryCreation() {
 
   const subCategorySearchDebounce = useDebounce(subCategorySearch, 500);
 
-  const { data: subCategories, isPending: subCategoriesIsPending } =
-    api.subCategories.getSubCategories.useQuery({
+  const { data: subCategories, isPending: subCategoriesIsPending } = useQuery(
+    trpc.subCategories.getSubCategories.queryOptions({
       filter: [{ id: "name", value: subCategorySearchDebounce }],
-    });
+    }),
+  );
 
   const transformedSubCategories = useMemo(
     () =>
